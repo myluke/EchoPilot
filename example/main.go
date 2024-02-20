@@ -16,12 +16,12 @@ import (
 	"strings"
 	"time"
 
-	eMiddleware "github.com/Emylukin/EchoPilot/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mylukin/EchoPilot/example/config"
 	"github.com/mylukin/EchoPilot/example/routers"
 	"github.com/mylukin/EchoPilot/helper"
+	eMiddleware "github.com/mylukin/EchoPilot/middleware"
 	redisDb "github.com/mylukin/EchoPilot/storage/redis"
 
 	_ "github.com/mylukin/EchoPilot/example/catalog"
