@@ -60,12 +60,12 @@ func Expire(key string, expiration time.Duration) *redis.BoolCmd {
 }
 
 // Set
-func Set(key string, value interface{}, expiration time.Duration) *redis.StatusCmd {
+func Set(key string, value any, expiration time.Duration) *redis.StatusCmd {
 	return GetRedis().Set(context.Background(), GetCacheKey(key), value, expiration)
 }
 
 // JsonSet
-func JsonSet(key string, value interface{}, expiration time.Duration) *redis.StatusCmd {
+func JsonSet(key string, value any, expiration time.Duration) *redis.StatusCmd {
 	ctx := context.Background()
 	redisObj := GetRedis()
 	cacheKey := GetCacheKey(key)

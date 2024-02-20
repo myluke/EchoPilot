@@ -78,7 +78,7 @@ func C(collection string) *Collection {
 }
 
 // decode
-func decode(ctx context.Context, cur *mongo.Cursor, results interface{}) error {
+func decode(ctx context.Context, cur *mongo.Cursor, results any) error {
 	resultsVal := reflect.ValueOf(results)
 	if resultsVal.Kind() != reflect.Ptr {
 		return fmt.Errorf("results argument must be a pointer to a slice, but was a %s", resultsVal.Kind())

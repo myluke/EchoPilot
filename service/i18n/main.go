@@ -20,24 +20,24 @@ type Domain = i18n.Domain
 const I18nCtxKey i18nKey = "i18n-ctx"
 
 // NewPrinter is new printer
-func NewPrinter(lang interface{}) *i18n.Printer {
+func NewPrinter(lang any) *i18n.Printer {
 	return i18n.NewPrinter(lang)
 }
 
 // SetLang set language
-func SetLang(lang interface{}) *i18n.Printer {
+func SetLang(lang any) *i18n.Printer {
 	i18n.SetLang(lang)
 	return NewPrinter(lang)
 }
 
 // Make is make language printer
-func Make(lang interface{}) context.Context {
+func Make(lang any) context.Context {
 	ctx, _ := context.WithCancel(context.Background())
 	return context.WithValue(ctx, I18nCtxKey, i18n.NewPrinter(lang))
 }
 
 // Printf is like fmt.Printf, but using language-specific formatting.
-func Printf(ctx interface{}, format string, args ...interface{}) {
+func Printf(ctx any, format string, args ...any) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf(format, args...)
@@ -58,7 +58,7 @@ func Printf(ctx interface{}, format string, args ...interface{}) {
 }
 
 // Sprintf is like fmt.Sprintf, but using language-specific formatting.
-func Sprintf(ctx interface{}, format string, args ...interface{}) (result string) {
+func Sprintf(ctx any, format string, args ...any) (result string) {
 	defer func() {
 		if err := recover(); err != nil {
 			result = fmt.Sprintf(format, args...)
@@ -79,7 +79,7 @@ func Sprintf(ctx interface{}, format string, args ...interface{}) (result string
 }
 
 // Fprintf is like fmt.Fprintf, but using language-specific formatting.
-func Fprintf(w io.Writer, ctx interface{}, key string, args ...interface{}) (n int, resErr error) {
+func Fprintf(w io.Writer, ctx any, key string, args ...any) (n int, resErr error) {
 	defer func() {
 		if err := recover(); err != nil {
 			n, resErr = fmt.Fprintf(w, key, args...)
@@ -100,6 +100,6 @@ func Fprintf(w io.Writer, ctx interface{}, key string, args ...interface{}) (n i
 }
 
 // Plural is plural
-func Plural(cases ...interface{}) []i18n.PluralRule {
+func Plural(cases ...any) []i18n.PluralRule {
 	return i18n.Plural(cases...)
 }

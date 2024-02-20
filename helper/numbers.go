@@ -7,7 +7,7 @@ import (
 )
 
 // NiceNumber is nice number
-func NiceNumber(num interface{}) string {
+func NiceNumber(num any) string {
 	var n int64 = 0
 	switch _n := num.(type) {
 	case int64:

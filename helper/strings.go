@@ -10,7 +10,7 @@ import (
 )
 
 // FindSubstr 查找截取
-func FindSubstr(content string, params ...interface{}) string {
+func FindSubstr(content string, params ...any) string {
 	var result string = ""
 	// 参数不全，直接返回
 	if len(params) < 2 {

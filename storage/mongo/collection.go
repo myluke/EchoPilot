@@ -88,22 +88,22 @@ func (c *Collection) Where(filter bson.D) *Session {
 }
 
 // FindByID finds a single document by id.
-func (c *Collection) FindByID(id primitive.ObjectID, result interface{}) error {
+func (c *Collection) FindByID(id primitive.ObjectID, result any) error {
 	return c.Where(bson.D{{"_id", id}}).Find(result)
 }
 
 // InsertWithResult inserts a single document into the collection and returns insert one result.
-func (c *Collection) Insert(doc interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+func (c *Collection) Insert(doc any, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	return c.collection.InsertOne(context.Background(), doc, opts...)
 }
 
 // InsertAllWithResult inserts the provided documents and returns insert many result.
-func (c *Collection) InsertAll(docs []interface{}, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
+func (c *Collection) InsertAll(docs []any, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
 	return c.collection.InsertMany(context.Background(), docs, opts...)
 }
 
 // Aggregate performs an aggregation pipeline.
-func (c *Collection) Aggregate(pipeline interface{}, results interface{}, opts ...*options.AggregateOptions) error {
+func (c *Collection) Aggregate(pipeline any, results any, opts ...*options.AggregateOptions) error {
 	// 设置超时时间
 	ao := options.MergeAggregateOptions(opts...)
 	maxTime := 10 * time.Second

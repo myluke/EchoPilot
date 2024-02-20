@@ -100,7 +100,7 @@ func TestMain(t *testing.T) {
 	}
 
 	// InsertAll
-	var docs []interface{}
+	var docs []any
 	for index := 0; index < 10; index++ {
 		docs = append(docs, bson.M{
 			"name":       fmt.Sprintf("name%d", index),

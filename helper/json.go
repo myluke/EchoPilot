@@ -5,7 +5,7 @@ import jsoniter "github.com/json-iterator/go"
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // JSONBody is send message
-type JSONBody map[string]interface{}
+type JSONBody map[string]any
 
 // Error
 func (body JSONBody) Error() string {

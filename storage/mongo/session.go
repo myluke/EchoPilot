@@ -94,7 +94,7 @@ func (s *Session) SetOpts(opts ...*options.FindOptions) *Session {
 }
 
 // Find returns up to one document that matches the model.
-func (s *Session) Find(result interface{}) error {
+func (s *Session) Find(result any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	data, err := s.collection.FindOne(ctx, s.filter).DecodeBytes()
@@ -105,7 +105,7 @@ func (s *Session) Find(result interface{}) error {
 }
 
 // FetchAll find all
-func (s *Session) FetchAll(results interface{}) error {
+func (s *Session) FetchAll(results any) error {
 	// 设置超时时间
 	ctx := context.Background()
 	fo := options.MergeFindOptions(s.findOpts...)
@@ -128,12 +128,12 @@ func (s *Session) FetchAll(results interface{}) error {
 }
 
 // Update by id
-func (s *Session) UpdateID(id primitive.ObjectID, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (s *Session) UpdateID(id primitive.ObjectID, update any, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return s.collection.UpdateOne(context.Background(), bson.D{{"_id", id}}, update, opts...)
 }
 
 // Update one
-func (s *Session) UpdateOne(update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (s *Session) UpdateOne(update any, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	if s.filter == nil {
 		s.filter = bson.D{}
 	}
@@ -141,7 +141,7 @@ func (s *Session) UpdateOne(update interface{}, opts ...*options.UpdateOptions) 
 }
 
 // Update all
-func (s *Session) Update(update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (s *Session) Update(update any, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	if s.filter == nil {
 		s.filter = bson.D{}
 	}
@@ -188,7 +188,7 @@ func (s *Session) Count(opts ...*options.CountOptions) int64 {
 }
 
 // Pagination pagination
-func (s *Session) Pagination(page, limit int, results interface{}) (int64, error) {
+func (s *Session) Pagination(page, limit int, results any) (int64, error) {
 	fo := options.MergeFindOptions(s.findOpts...)
 	if limit > 0 {
 		fo.SetLimit(int64(limit))

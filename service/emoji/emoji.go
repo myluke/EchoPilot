@@ -62,7 +62,7 @@ func LookupEmoji(emojiString string) (emoji Emoji, err error) {
 }
 
 // LookupEmojis - Lookup definitions for each emoji in the input
-func LookupEmojis(emoji []string) (matches []interface{}) {
+func LookupEmojis(emoji []string) (matches []any) {
 	for _, emoji := range emoji {
 		if match, err := LookupEmoji(emoji); err == nil {
 			matches = append(matches, match)
@@ -95,7 +95,7 @@ func RemoveAll(input string) string {
 
 // SearchResult - Occurence of an emoji in a string
 type SearchResult struct {
-	Match       interface{}
+	Match       any
 	Occurrences int
 	Locations   [][]int
 }
@@ -104,7 +104,7 @@ type SearchResult struct {
 type SearchResults []SearchResult
 
 // IndexOf - Check to see if search results contains a specific element
-func (results SearchResults) IndexOf(result interface{}) int {
+func (results SearchResults) IndexOf(result any) int {
 	for i, r := range results {
 		if r.Match == result {
 			return i
