@@ -4,6 +4,7 @@ go 1.21.6
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/Xuanwo/go-locale v1.1.0
 	github.com/go-dedup/simhash v0.0.0-20170904020510-9ecaca7b509c
 	github.com/imroc/req/v3 v3.42.3
 	github.com/json-iterator/go v1.1.12
@@ -14,6 +15,7 @@ require (
 	github.com/redis/go-redis/v9 v9.5.0
 	github.com/stretchr/testify v1.8.4
 	github.com/telkomdev/go-stash v1.0.3
+	github.com/urfave/cli/v2 v2.3.0
 	github.com/valyala/bytebufferpool v1.0.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.mongodb.org/mongo-driver v1.14.0
@@ -26,6 +28,7 @@ require (
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-dedup/megophone v0.0.0-20170830025436-f01be21026f5 // indirect
@@ -49,6 +52,7 @@ require (
 	github.com/quic-go/qtls-go1-20 v0.4.1 // indirect
 	github.com/quic-go/quic-go v0.40.1 // indirect
 	github.com/refraction-networking/utls v1.6.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
