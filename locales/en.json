@@ -1,0 +1,8 @@
+{
+  "%s gen_bot_events [module] [outfile]": "%s gen_bot_events [module] [outfile]",
+  "A new cli application": "A new cli application",
+  "Generate Bot Events": "Generate Bot Events",
+  "[module] can't be empty.": "[module] can't be empty.",
+  "a tool for managing message translations.": "a tool for managing message translations.",
+  "create a project": "create a project"
+}
