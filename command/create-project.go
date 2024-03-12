@@ -11,6 +11,8 @@ import (
 
 	ei18n "github.com/mylukin/easy-i18n/i18n"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var CreateProjectCommand = cli.Command{
@@ -31,11 +33,30 @@ var CreateProjectCommand = cli.Command{
 const TEMPLATE_URL = "https://github.com/mylukin/EchoPilot-Template/archive/refs/heads/main.zip"
 
 // ExecuteCmd1 执行命令逻辑
-func createProject(name string) error {
-	err := downloadAndUnzip(TEMPLATE_URL, name)
+func createProject(packageName string) error {
+
+	// mylukin/app 生成 app, 根据 / 分割 取最后一个字符串
+	projectName := filepath.Base(packageName)
+
+	// 下载模板
+	err := downloadAndUnzip(TEMPLATE_URL, projectName)
 	if err != nil {
 		panic(err)
 	}
+
+	projectTitle := cases.Title(language.English).String(projectName)
+
+	// 替换 包名 github.com/mylukin/EchoPilot-Template
+	replaceInFiles(projectName, []string{
+		"github.com/mylukin/EchoPilot-Template",
+		"EchoPilot-Template",
+		"{APP_NAME}",
+	}, []string{
+		"github.com/" + packageName,
+		projectTitle,
+		projectTitle,
+	})
+
 	return nil
 }
 
@@ -123,4 +144,54 @@ func adjustPath(filePath string) string {
 		return "" // 如果没有子目录或文件，返回空字符串
 	}
 	return parts[1] // 返回去除了顶层目录后的路径
+}
+
+// replaceInFiles 批量遍历指定目录下的所有文件，并替换文件内容
+func replaceInFiles(rootDir string, oldStrings, newStrings []string) error {
+	// 确保替换字符串的数组长度相同
+	if len(oldStrings) != len(newStrings) {
+		return errors.New("oldStrings and newStrings must have the same length")
+	}
+
+	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			err := replaceInFile(path, oldStrings, newStrings)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return err
+}
+
+// replaceInFile 批量替换文件中的字符串
+func replaceInFile(filePath string, oldStrings, newStrings []string) error {
+	fileContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	content := string(fileContent)
+	// 对于每一对 oldString 和 newString，执行替换
+	for i, oldString := range oldStrings {
+		newString := newStrings[i]
+		content = strings.Replace(content, oldString, newString, -1)
+	}
+
+	// 如果内容未发生变化，则不需要重写文件
+	if content == string(fileContent) {
+		return nil
+	}
+
+	// 写回文件
+	err = os.WriteFile(filePath, []byte(content), 0666)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

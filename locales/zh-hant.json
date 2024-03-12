@@ -3,6 +3,8 @@
   "A new cli application": "A new cli application",
   "Generate Bot Events": "Generate Bot Events",
   "[module] can't be empty.": "[module] can't be empty.",
+  "[project name] can't be empty.": "[project name] can't be empty.",
   "a tool for managing message translations.": "a tool for managing message translations.",
-  "create a project": "create a project"
+  "create a project": "create a project",
+  "print only the version": "print only the version"
 }
