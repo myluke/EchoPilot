@@ -4,8 +4,10 @@ import (
 	"archive/zip"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -37,15 +39,17 @@ func createProject(packageName string) error {
 
 	// mylukin/app 生成 app, 根据 / 分割 取最后一个字符串
 	projectName := filepath.Base(packageName)
+	log.Println("project name:", projectName)
 
 	// 下载模板
+	log.Println("downloading template...")
 	err := downloadAndUnzip(TEMPLATE_URL, projectName)
 	if err != nil {
 		panic(err)
 	}
 
+	log.Println("replace template...")
 	projectTitle := cases.Title(language.English).String(projectName)
-
 	// 替换 包名 github.com/mylukin/EchoPilot-Template
 	replaceInFiles(projectName, []string{
 		"github.com/mylukin/EchoPilot-Template",
@@ -56,6 +60,20 @@ func createProject(packageName string) error {
 		projectTitle,
 		projectTitle,
 	})
+
+	// 执行 go mod tidy & go mod vendor
+	log.Println("installing dependencies...")
+	cmd := exec.Command("sh", "-c", `cd `+projectName+` && go mod tidy && go mod vendor`)
+
+	// 运行命令，并获取其输出
+	_, cmdErr := cmd.CombinedOutput()
+	if cmdErr != nil {
+		log.Println("exec sh error:", cmdErr)
+		return nil
+	}
+
+	// 输出安装完成
+	log.Println("install done!")
 
 	return nil
 }
