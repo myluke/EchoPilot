@@ -37,6 +37,11 @@ const TEMPLATE_URL = "https://github.com/mylukin/EchoPilot-Template/archive/refs
 // ExecuteCmd1 执行命令逻辑
 func createProject(packageName string) error {
 
+	// 检查packageName 必须是这种格式 mylukin/example，否则报错
+	if !strings.Contains(packageName, "/") {
+		return errors.New("package name must be in the format of 'mylukin/example'")
+	}
+
 	// mylukin/app 生成 app, 根据 / 分割 取最后一个字符串
 	projectName := filepath.Base(packageName)
 	log.Println("project name:", projectName)
