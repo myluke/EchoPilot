@@ -1,7 +1,7 @@
 
 # EchoPilot
 
-EchoPilot aims to simplify and accelerate Go web application development by leveraging the Echo framework. This project is designed to make project launches quicker and more effortless, enabling developers to focus on building features rather than dealing with the complexities of web development infrastructure.
+Simplifying and accelerating Go web application development with the Echo framework, making project launches quicker and effortless.
 
 ## Features
 
