@@ -61,6 +61,10 @@ func createProject(packageName string) error {
 		projectTitle,
 	})
 
+	// cp .env.example .env
+	log.Println("copy .env.example to .env")
+	os.Rename(projectName+"/.env.example", projectName+"/.env")
+
 	// 执行 go mod tidy & go mod vendor
 	log.Println("installing dependencies...")
 	cmd := exec.Command("sh", "-c", `cd `+projectName+` && go mod tidy && go mod vendor`)
