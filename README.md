@@ -23,12 +23,18 @@ Go (version 1.x or higher)
 
 ### Installing
 
-Install:
+**Install:**
 
 ```bash
 go install github.com/mylukin/EchoPilot@latest
+```
+
+**Create a project:**
+
+```bash
 EchoPilot create mylukin/example
 ```
+
 
 ## License
 
