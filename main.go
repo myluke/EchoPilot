@@ -33,7 +33,7 @@ func main() {
 	app := &cli.App{
 		Name:    `EchoPilot`,
 		Version: "v0.1.0",
-		Usage:   ei18n.Sprintf("A new cli application"),
+		Usage:   ei18n.Sprintf(`Echo framework's CLI scaffolding tool`),
 		Action: func(c *cli.Context) error {
 			cli.ShowAppHelp(c)
 			return nil
