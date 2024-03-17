@@ -97,7 +97,7 @@ func (s *Session) SetOpts(opts ...*options.FindOptions) *Session {
 func (s *Session) Find(result any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	data, err := s.collection.FindOne(ctx, s.filter).DecodeBytes()
+	data, err := s.collection.FindOne(ctx, s.filter).Raw()
 	if err != nil {
 		return err
 	}
