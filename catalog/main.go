@@ -14,7 +14,7 @@ func init() {
 // initEn will init en support.
 func initEn(tag language.Tag) {
 	message.SetString(tag, "%s gen_bot_events [module] [outfile]", "%s gen_bot_events [module] [outfile]")
-	message.SetString(tag, "A new cli application", "A new cli application")
+	message.SetString(tag, "Echo framework's CLI scaffolding tool", "Echo framework's CLI scaffolding tool")
 	message.SetString(tag, "Generate Bot Events", "Generate Bot Events")
 	message.SetString(tag, "[module] can't be empty.", "[module] can't be empty.")
 	message.SetString(tag, "[project name] can't be empty.", "[project name] can't be empty.")
@@ -25,7 +25,7 @@ func initEn(tag language.Tag) {
 // initZhhans will init zh-hans support.
 func initZhhans(tag language.Tag) {
 	message.SetString(tag, "%s gen_bot_events [module] [outfile]", "%s gen_bot_events [module] [outfile]")
-	message.SetString(tag, "A new cli application", "A new cli application")
+	message.SetString(tag, "Echo framework's CLI scaffolding tool", "Echo framework's CLI scaffolding tool")
 	message.SetString(tag, "Generate Bot Events", "Generate Bot Events")
 	message.SetString(tag, "[module] can't be empty.", "[module] can't be empty.")
 	message.SetString(tag, "[project name] can't be empty.", "[project name] can't be empty.")
@@ -36,7 +36,7 @@ func initZhhans(tag language.Tag) {
 // initZhhant will init zh-hant support.
 func initZhhant(tag language.Tag) {
 	message.SetString(tag, "%s gen_bot_events [module] [outfile]", "%s gen_bot_events [module] [outfile]")
-	message.SetString(tag, "A new cli application", "A new cli application")
+	message.SetString(tag, "Echo framework's CLI scaffolding tool", "Echo framework's CLI scaffolding tool")
 	message.SetString(tag, "Generate Bot Events", "Generate Bot Events")
 	message.SetString(tag, "[module] can't be empty.", "[module] can't be empty.")
 	message.SetString(tag, "[project name] can't be empty.", "[project name] can't be empty.")

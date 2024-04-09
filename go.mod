@@ -8,6 +8,7 @@ require (
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/go-dedup/simhash v0.0.0-20170904020510-9ecaca7b509c
 	github.com/imroc/req/v3 v3.42.3
+	github.com/joho/godotenv v1.5.1
 	github.com/json-iterator/go v1.1.12
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/labstack/gommon v0.4.2

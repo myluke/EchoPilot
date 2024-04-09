@@ -1,6 +1,6 @@
 {
   "%s gen_bot_events [module] [outfile]": "%s gen_bot_events [module] [outfile]",
-  "A new cli application": "A new cli application",
+  "Echo framework's CLI scaffolding tool": "Echo framework's CLI scaffolding tool",
   "Generate Bot Events": "Generate Bot Events",
   "[module] can't be empty.": "[module] can't be empty.",
   "[project name] can't be empty.": "[project name] can't be empty.",
