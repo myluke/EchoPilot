@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"testing"
@@ -8,6 +9,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -55,6 +57,22 @@ func TestPagination(t *testing.T) {
 	}
 
 	log.Printf("total: %v", total)
+	for _, r := range results {
+		log.Println(r.Name)
+	}
+}
+
+func TestRun(t *testing.T) {
+	var results []Person
+	session.C(Table).Where(bson.D{}).SetOpts(options.Find().SetSort(bson.D{{"_id", -1}})).Run(100, func(c *mongo.Cursor) {
+		for c.Next(context.Background()) {
+			var r Person
+			if err := c.Decode(&r); err != nil {
+				log.Println(err)
+			}
+			results = append(results, r)
+		}
+	})
 	for _, r := range results {
 		log.Println(r.Name)
 	}
