@@ -1,7 +1,6 @@
 package mongo
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"testing"
@@ -65,13 +64,11 @@ func TestPagination(t *testing.T) {
 func TestRun(t *testing.T) {
 	var results []Person
 	session.C(Table).Where(bson.D{}).SetOpts(options.Find().SetSort(bson.D{{"_id", -1}})).Run(100, func(c *mongo.Cursor) {
-		for c.Next(context.Background()) {
-			var r Person
-			if err := c.Decode(&r); err != nil {
-				log.Println(err)
-			}
-			results = append(results, r)
+		var r Person
+		if err := c.Decode(&r); err != nil {
+			log.Println(err)
 		}
+		results = append(results, r)
 	})
 	for _, r := range results {
 		log.Println(r.Name)
