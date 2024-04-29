@@ -28,5 +28,5 @@ generate: install-deps
 	 go generate
 
 install:
-	@go build -v -mod=vendor -buildvcs=false -o ./EchoPilot; \
+	@go build -v -mod=readonly -buildvcs=false -o ./EchoPilot; \
 	 chmod a+x ./EchoPilot && mv ./EchoPilot $(GOPATH)/bin/
