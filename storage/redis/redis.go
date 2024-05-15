@@ -240,7 +240,7 @@ func RunQueue(queueKey string, batchNum int, callback func([]byte) (interface{},
 
 		// 移除已成功处理的数据
 		if len(members) > 0 {
-			err := cRedis.ZRem(ctx, queueKey, members...)
+			err := cRedis.ZRem(ctx, queueKey, members...).Err()
 			if err != nil {
 				log.Error("Error removing processed members: ", err)
 			} else {
