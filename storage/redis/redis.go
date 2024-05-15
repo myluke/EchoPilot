@@ -152,7 +152,12 @@ func MonthDo(name string) int {
 }
 
 // AddQueue
-func AddQueue(queueKey string, i interface{}, delay time.Duration) error {
+func AddQueue(queueKey string, i interface{}) error {
+	return AddDelayQueue(queueKey, i, 0)
+}
+
+// AddDelayQueue
+func AddDelayQueue(queueKey string, i interface{}, delay time.Duration) error {
 	byteData, err := json.Marshal(i)
 	if err != nil {
 		return err
