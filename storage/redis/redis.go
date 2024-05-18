@@ -79,18 +79,18 @@ func JsonSet(key string, value any, expiration time.Duration) *redis.StatusCmd {
 }
 
 // IncrBy
-func IncrBy(key string, value int64) (int64, error) {
-	return GetRedis().IncrBy(context.Background(), GetCacheKey(key), value).Result()
+func IncrBy(key string, value int64) *redis.IntCmd {
+	return GetRedis().IncrBy(context.Background(), GetCacheKey(key), value)
 }
 
 // IncrByFloat
-func IncrByFloat(key string, value float64) (float64, error) {
-	return GetRedis().IncrByFloat(context.Background(), GetCacheKey(key), value).Result()
+func IncrByFloat(key string, value float64) *redis.FloatCmd {
+	return GetRedis().IncrByFloat(context.Background(), GetCacheKey(key), value)
 }
 
 // DecrBy
-func DecrBy(key string, value int64) (int64, error) {
-	return GetRedis().DecrBy(context.Background(), GetCacheKey(key), value).Result()
+func DecrBy(key string, value int64) *redis.IntCmd {
+	return GetRedis().DecrBy(context.Background(), GetCacheKey(key), value)
 }
 
 // Get
@@ -126,7 +126,7 @@ func TTL(key string) *redis.DurationCmd {
 // AnyDo
 func AnyDo(name string, expiration time.Duration) int {
 	ckey := fmt.Sprintf("EveryAnyDo:%s:%s", name, expiration.String())
-	icr, err := IncrBy(ckey, 1)
+	icr, err := IncrBy(ckey, 1).Result()
 	if err != nil {
 		return 0
 	}
