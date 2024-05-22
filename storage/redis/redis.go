@@ -153,33 +153,30 @@ func MonthDo(name string) int {
 
 // AddQueue
 func AddQueue(queueKey string, i interface{}) error {
-	return AddDelayQueue(queueKey, i, 0)
+	return AddQueueByScore(queueKey, i, 0)
+}
+
+// AddQueueByScore
+func AddQueueByScore(queueKey string, i interface{}, score float64) error {
+	byteData, err := json.Marshal(i)
+	if err != nil {
+		return err
+	}
+
+	return GetRedis().ZAdd(context.Background(), GetCacheKey(queueKey), redis.Z{
+		Score:  score,
+		Member: byteData,
+	}).Err()
 }
 
 // AddDelayQueue
 func AddDelayQueue(queueKey string, i interface{}, delay time.Duration) error {
-	byteData, err := json.Marshal(i)
-	if err != nil {
-		return err
-	}
-
-	return GetRedis().ZAdd(context.Background(), GetCacheKey(queueKey), redis.Z{
-		Score:  float64(time.Now().Add(delay).Unix()),
-		Member: byteData,
-	}).Err()
+	return AddQueueByScore(queueKey, i, float64(time.Now().Add(delay).Unix()))
 }
 
 // AddPriorityQueue
 func AddPriorityQueue(queueKey string, i interface{}, priority int64) error {
-	byteData, err := json.Marshal(i)
-	if err != nil {
-		return err
-	}
-
-	return GetRedis().ZAdd(context.Background(), GetCacheKey(queueKey), redis.Z{
-		Score:  float64(priority),
-		Member: byteData,
-	}).Err()
+	return AddQueueByScore(queueKey, i, float64(priority))
 }
 
 // RunQueue
