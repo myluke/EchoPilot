@@ -181,14 +181,14 @@ func AddPriorityQueue(queueKey string, i interface{}, priority int64) error {
 
 // RunQueue
 // // 一条一条的处理
-// redis.RunQueue("task_queue", 10, time.Now().Unix(), func(data []byte) (interface{}, error) {
+// redis.RunQueue("task_queue", 10, "+inf", func(data []byte) (interface{}, error) {
 // 	log.Infof("data: %s", string(data))
 // 	return nil, nil
 // })
 
 // // 批量处理
 //
-//	redis.RunQueue("task_queue", 10, time.Now().Unix(), func(data []byte) (interface{}, error) {
+//	redis.RunQueue("task_queue", 10, "+inf", func(data []byte) (interface{}, error) {
 //		log.Infof("data: %s", string(data))
 //		return nil, nil
 //	}, func(results []interface{}) error {
@@ -196,7 +196,7 @@ func AddPriorityQueue(queueKey string, i interface{}, priority int64) error {
 //		log.Infof("results: %v", results)
 //		return nil
 //	})
-func RunQueue(queueKey string, batchNum int, scoreMax int64, callback func([]byte) (interface{}, error), callbacks ...func([]interface{}) error) {
+func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]byte) (interface{}, error), callbacks ...func([]interface{}) error) {
 	queueKey = GetCacheKey(queueKey)
 	cRedis := GetRedis()
 	ticker := time.NewTicker(1 * time.Second)
@@ -206,7 +206,7 @@ func RunQueue(queueKey string, batchNum int, scoreMax int64, callback func([]byt
 		results := []interface{}{}
 		res, err := cRedis.ZRangeByScoreWithScores(ctx, queueKey, &redis.ZRangeBy{
 			Min:    "-inf",
-			Max:    fmt.Sprintf("%d", scoreMax),
+			Max:    scoreMax,
 			Offset: 0,
 			Count:  int64(batchNum),
 		}).Result()
