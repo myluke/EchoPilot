@@ -245,6 +245,7 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 			// 执行函数
 			r, err := callback([]byte(data))
 			if err != nil {
+				processed[uuid] = false
 				log.Error(err)
 				continue
 			}
