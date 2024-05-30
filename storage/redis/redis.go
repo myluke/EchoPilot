@@ -230,6 +230,7 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 		// log.Infof("res: %v", res)
 
 		members := []interface{}{}
+		lockKeys := []string{}
 		for _, rz := range res {
 			// 到了执行时间
 			data := rz.Member.(string)
@@ -258,12 +259,10 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 			}
 
 			members = append(members, rz.Member)
-
+			lockKeys = append(lockKeys, lockKey)
 			if len(callbacks) > 0 {
 				results = append(results, r)
 			}
-			// 删除处理标志
-			cRedis.Del(ctx, lockKey)
 		}
 
 		// 移除已成功处理的数据
@@ -273,6 +272,10 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 				log.Error("Error removing processed members: ", err)
 			} else {
 				log.Infof("Removed processed members: %v", members)
+				// 删除处理标志
+				for _, lockKey := range lockKeys {
+					cRedis.Del(ctx, lockKey)
+				}
 			}
 		}
 
