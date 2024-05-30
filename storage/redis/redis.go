@@ -202,7 +202,6 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 	ticker := time.NewTicker(1 * time.Second)
 	ctx := context.Background()
 
-	var processed = map[string]bool{}
 	for range ticker.C {
 		results := []interface{}{}
 		res, err := cRedis.ZRangeByScoreWithScores(ctx, queueKey, &redis.ZRangeBy{
@@ -234,13 +233,6 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 		for _, rz := range res {
 			// 到了执行时间
 			data := rz.Member.(string)
-			// 计算数据的hash
-			uuid := helper.MD5(data)
-			// 如果已经处理过，则跳过
-			if _, ok := processed[uuid]; ok {
-				continue
-			}
-			processed[uuid] = true
 
 			// 执行函数
 			r, err := callback([]byte(data))
