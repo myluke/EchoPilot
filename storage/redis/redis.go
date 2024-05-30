@@ -233,11 +233,27 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 		for _, rz := range res {
 			// 到了执行时间
 			data := rz.Member.(string)
+			uuid := helper.MD5(data)
+
+			// 尝试设置处理标志
+			lockKey := fmt.Sprintf("%s:processing:%s", queueKey, uuid)
+			set, err := cRedis.SetNX(ctx, lockKey, true, 10*time.Minute).Result()
+			if err != nil {
+				log.Error("Error setting processing lock: ", err)
+				continue
+			}
+
+			// 如果标志已经存在，跳过
+			if !set {
+				continue
+			}
 
 			// 执行函数
 			r, err := callback([]byte(data))
 			if err != nil {
 				log.Error(err)
+				// 清理处理标志
+				cRedis.Del(ctx, lockKey)
 				continue
 			}
 
@@ -246,6 +262,8 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 			if len(callbacks) > 0 {
 				results = append(results, r)
 			}
+			// 删除处理标志
+			cRedis.Del(ctx, lockKey)
 		}
 
 		// 移除已成功处理的数据
