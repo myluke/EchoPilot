@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/labstack/gommon/log"
@@ -196,7 +197,7 @@ func AddPriorityQueue(queueKey string, i interface{}, priority int64) error {
 //		log.Infof("results: %v", results)
 //		return nil
 //	})
-func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]byte) (interface{}, error), callbacks ...func([]interface{}) error) {
+func RunQueue(queueKey string, batchNum int, scoreMax float64, callback func([]byte) (interface{}, error), callbacks ...func([]interface{}) error) {
 	queueKey = GetCacheKey(queueKey)
 	cRedis := GetRedis()
 	ticker := time.NewTicker(1 * time.Second)
@@ -204,85 +205,58 @@ func RunQueue(queueKey string, batchNum int, scoreMax string, callback func([]by
 
 	for range ticker.C {
 		results := []interface{}{}
-		res, err := cRedis.ZRangeByScoreWithScores(ctx, queueKey, &redis.ZRangeBy{
-			Min:    "-inf",
-			Max:    scoreMax,
-			Offset: 0,
-			Count:  int64(batchNum),
-		}).Result()
+		var wg sync.WaitGroup
+		var mu sync.Mutex
 
-		// 处理失败，跳过
-		if err != nil {
-			// 队列为空，退出
-			if err == RedisNil {
+		for i := 0; i < batchNum; i++ {
+			// 使用 ZPOPMIN 获取并移动任务
+			res, err := cRedis.ZPopMin(ctx, queueKey, 1).Result()
+			if err == redis.Nil || len(res) == 0 {
 				// 队列为空，继续等待下一次查询
-				continue
-			}
-			log.Error(err)
-			continue
-		}
-
-		if len(res) == 0 {
-			// 没有到期任务，继续等待下一次查询
-			continue
-		}
-
-		// log.Infof("res: %v", res)
-
-		members := []interface{}{}
-		lockKeys := []string{}
-		for _, rz := range res {
-			// 到了执行时间
-			data := rz.Member.(string)
-			uuid := helper.MD5(data)
-
-			// 尝试设置处理标志
-			lockKey := fmt.Sprintf("%s:processing:%s", queueKey, uuid)
-			set, err := cRedis.SetNX(ctx, lockKey, true, 10*time.Minute).Result()
-			if err != nil {
-				log.Error("Error setting processing lock: ", err)
+				break
+			} else if err != nil {
+				log.Errorf("Error popping task from %s: %s", queueKey, err)
 				continue
 			}
 
-			// 如果标志已经存在，跳过
-			if !set {
+			data := res[0].Member.([]byte)
+			score := res[0].Score
+
+			if score > scoreMax {
+				// 如果当前元素的分数大于scoreMax，返回队列并跳过
+				cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: data})
 				continue
 			}
 
-			// 执行函数
-			r, err := callback([]byte(data))
-			if err != nil {
-				log.Error(err)
-				// 清理处理标志
-				cRedis.Del(ctx, lockKey)
-				continue
-			}
-
-			members = append(members, rz.Member)
-			lockKeys = append(lockKeys, lockKey)
-			if len(callbacks) > 0 {
-				results = append(results, r)
-			}
-		}
-
-		// 移除已成功处理的数据
-		if len(members) > 0 {
-			err := cRedis.ZRem(ctx, queueKey, members...).Err()
-			if err != nil {
-				log.Error("Error removing processed members: ", err)
-			} else {
-				log.Infof("Removed processed members: %v", members)
-				// 删除处理标志
-				for _, lockKey := range lockKeys {
-					cRedis.Del(ctx, lockKey)
+			wg.Add(1)
+			// 异步执行函数
+			go func(data []byte, score float64) {
+				defer wg.Done()
+				r, err := callback(data)
+				if err != nil {
+					log.Error(err)
+					// 将处理失败的任务重新放回队列
+					cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: data})
+					return
 				}
-			}
+
+				if len(callbacks) > 0 {
+					mu.Lock()
+					results = append(results, r)
+					mu.Unlock()
+				}
+			}(data, score)
 		}
+
+		// 等待所有异步处理完成
+		wg.Wait()
 
 		// 批量操作执行
-		for _, cb := range callbacks {
-			if err := cb(results); err != nil {
-				log.Error(err)
+		if len(results) > 0 {
+			for _, cb := range callbacks {
+				if err := cb(results); err != nil {
+					log.Error(err)
+				}
 			}
 		}
 	}
