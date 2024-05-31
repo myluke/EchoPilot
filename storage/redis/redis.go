@@ -219,24 +219,24 @@ func RunQueue(queueKey string, batchNum int, scoreMax float64, callback func([]b
 				continue
 			}
 
-			data := res[0].Member.([]byte)
+			data := res[0].Member.(string)
 			score := res[0].Score
 
 			if score > scoreMax {
 				// 如果当前元素的分数大于scoreMax，返回队列并跳过
-				cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: data})
+				cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: res[0].Member})
 				continue
 			}
 
 			wg.Add(1)
 			// 异步执行函数
-			go func(data []byte, score float64) {
+			go func(data string, score float64) {
 				defer wg.Done()
-				r, err := callback(data)
+				r, err := callback([]byte(data))
 				if err != nil {
 					log.Error(err)
 					// 将处理失败的任务重新放回队列
-					cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: data})
+					cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: res[0].Member})
 					return
 				}
 
