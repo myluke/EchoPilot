@@ -8,6 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/mylukin/easy-i18n/i18n"
+
+	tele "gopkg.in/telebot.v3"
 )
 
 // i18nKey is string
@@ -47,6 +49,8 @@ func Printf(ctx any, format string, args ...any) {
 	switch _ctx := ctx.(type) {
 	case echo.Context:
 		p = _ctx.Get("Language").(*i18n.Printer)
+	case tele.Context:
+		p = _ctx.Get("Language").(*i18n.Printer)
 	case context.Context:
 		p = _ctx.Value(I18nCtxKey).(*i18n.Printer)
 	case *i18n.Printer:
@@ -68,6 +72,8 @@ func Sprintf(ctx any, format string, args ...any) (result string) {
 	switch _ctx := ctx.(type) {
 	case echo.Context:
 		p = _ctx.Get("Language").(*i18n.Printer)
+	case tele.Context:
+		p = _ctx.Get("Language").(*i18n.Printer)
 	case context.Context:
 		p = _ctx.Value(I18nCtxKey).(*i18n.Printer)
 	case *i18n.Printer:
@@ -88,6 +94,8 @@ func Fprintf(w io.Writer, ctx any, key string, args ...any) (n int, resErr error
 	var p *i18n.Printer
 	switch _ctx := ctx.(type) {
 	case echo.Context:
+		p = _ctx.Get("Language").(*i18n.Printer)
+	case tele.Context:
 		p = _ctx.Get("Language").(*i18n.Printer)
 	case context.Context:
 		p = _ctx.Value(I18nCtxKey).(*i18n.Printer)

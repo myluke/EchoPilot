@@ -22,6 +22,7 @@ require (
 	github.com/valyala/fasttemplate v1.2.2
 	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/text v0.14.0
+	gopkg.in/telebot.v3 v3.3.6
 )
 
 require (
@@ -47,7 +48,7 @@ require (
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/onsi/ginkgo/v2 v2.13.2 // indirect
