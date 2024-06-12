@@ -132,11 +132,19 @@ func Split2Tags(text string) []string {
 
 // Base64Encode is base64 encode
 func Base64Encode(content string) string {
-	return base64.URLEncoding.EncodeToString([]byte(content))
+	return strings.TrimRight(base64.URLEncoding.EncodeToString([]byte(content)), "=")
 }
 
 // Base64Decode is base64 decode
 func Base64Decode(content string) string {
+	// 计算缺失的填充符号数量
+	missingPadding := len(content) % 4
+	if missingPadding > 0 {
+		missingPadding = 4 - missingPadding
+	}
+
+	// 添加相应数量的填充符号
+	content += strings.Repeat("=", missingPadding)
 	v, err := base64.URLEncoding.DecodeString(content)
 	if err == nil {
 		return string(v)
