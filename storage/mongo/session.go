@@ -3,7 +3,6 @@ package mongo
 import (
 	"context"
 	"errors"
-	"log"
 	"sync"
 	"time"
 
@@ -199,9 +198,6 @@ func (s *Session) Pagination(page, limit int, results any) (int64, error) {
 		fo.SetNoCursorTimeout(true)
 	}
 	s.SetOpts(fo)
-	log.Printf("table: %+v\n", s.table)
-	log.Printf("filter: %+v\n", s.filter)
-	log.Printf("findOpts: %+v\n", fo)
 	return s.table.Where(s.filter).Count(), s.FetchAll(results)
 }
 
