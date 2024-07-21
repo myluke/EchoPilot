@@ -3,7 +3,6 @@ package helper
 import (
 	"encoding/base64"
 	"fmt"
-	"math"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -69,45 +68,25 @@ func FindSubstr(content string, params ...any) string {
 	return result
 }
 
-// StrLimit is string limit
+// StrLimit limits the length of the text to the specified character length
 func StrLimit(text string, length int) string {
-	textRune := UTF8DecodeRune(text)
-	textStrLen := len(text)
-	textRealLen := len(textRune)
-	// 英文，字数翻倍
-	if textStrLen-textRealLen < textStrLen/2 {
-		length *= 2
-	}
-	if textRealLen > length {
-		text = strings.Join(textRune[0:length], "") + "..."
+	textRune := []rune(text)
+	if len(textRune) > length {
+		return string(textRune[:length]) + "..."
 	}
 	return text
 }
 
 // StrLen is get string length
 func StrLen(text string) int {
-	textLen := float64(utf8.RuneCountInString(text))
-	byteLen := float64(len(text))
-	// 英文，字数翻倍
-	if byteLen-textLen < byteLen/2.8 {
-		textLen = textLen / 2.8
-	}
-	return int(math.Floor(textLen))
+	return utf8.RuneCountInString(text)
 }
 
 // UTF8DecodeRune is string to Rune
 func UTF8DecodeRune(text string) []string {
 	var res []string
-	bText := []byte(text)
-	for len(bText) > 0 {
-		r, size := utf8.DecodeRune(bText)
-		if size == 4 {
-			res = append(res, fmt.Sprintf("%c", r))
-			res = append(res, "")
-		} else {
-			res = append(res, fmt.Sprintf("%c", r))
-		}
-		bText = bText[size:]
+	for _, r := range []rune(text) {
+		res = append(res, string(r))
 	}
 	return res
 }
