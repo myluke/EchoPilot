@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -12,8 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// ErrMongoNoDoc is mongo: no document results
-var ErrMongoNoDoc = errors.New("mongo: no document results")
+// ErrNoDocuments is mongo: no document results
+var ErrNoDocuments = mongo.ErrNoDocuments
 
 type (
 	BulkWriteResult         = mongo.BulkWriteResult
