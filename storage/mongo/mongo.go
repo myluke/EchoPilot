@@ -47,7 +47,6 @@ func New(uri ...string) *Session {
 	if err != nil {
 		log.Panic(err)
 	}
-	defer session.Release()
 
 	return session
 }
