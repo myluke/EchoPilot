@@ -25,7 +25,8 @@ type Session struct {
 	mu         sync.Mutex
 	filter     bson.D
 	findOpts   []*options.FindOptions
-	closeChan  chan struct{}
+	stopChan   chan struct{}
+	refCount   int
 }
 
 // C Collection alias
@@ -243,15 +244,28 @@ func (s *Session) backgroundCheck() {
 		select {
 		case <-ticker.C:
 			if err := s.Ping(); err != nil {
-				// 失败，重试
+				log.Printf("Ping failed: %v", err)
 				if err := s.Connect(); err != nil {
-					log.Println(err)
+					log.Printf("Reconnect failed: %v", err)
 				}
 			}
-		case <-s.closeChan:
+		case <-s.stopChan:
 			// Received signal to stop
 			return
 		}
+	}
+}
+
+func (s *Session) Release() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.refCount--
+	if s.refCount == 0 {
+		s.Close()
+		sessionMu.Lock()
+		delete(sessions, s.uri)
+		sessionMu.Unlock()
 	}
 }
 
@@ -261,7 +275,7 @@ func (s *Session) Close() {
 
 	if s.client != nil {
 		// Signal the background goroutine to stop
-		close(s.closeChan)
+		close(s.stopChan)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()

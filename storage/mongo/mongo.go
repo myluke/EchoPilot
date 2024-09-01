@@ -15,8 +15,10 @@ import (
 var ErrNoDocuments = mongo.ErrNoDocuments
 
 var (
-	instance *Session
-	once     sync.Once
+	instance     *Session
+	instanceOnce sync.Once
+	sessionMu    sync.Mutex
+	sessions     = make(map[string]*Session)
 )
 
 type (
@@ -43,35 +45,52 @@ func New(uri ...string) *Session {
 	if len(uri) > 0 {
 		URI = uri[0]
 	}
-	session := &Session{
-		uri:       URI,
-		closeChan: make(chan struct{}),
-	}
-	if err := session.Connect(); err != nil {
+	session, err := GetSession(URI)
+	if err != nil {
 		log.Panic(err)
 	}
-
-	// Start the background goroutine for connection checking
-	go session.backgroundCheck()
+	defer session.Release()
 
 	return session
 }
 
 func Get(uri ...string) *Session {
-	once.Do(func() {
-		URI := helper.Config("MONGO_URI")
-		if len(uri) > 0 {
-			URI = uri[0]
-		}
-		instance = New(URI)
+	instanceOnce.Do(func() {
+		instance = New(uri...)
 	})
 
 	return instance
 }
 
+func GetSession(uri string) (*Session, error) {
+	sessionMu.Lock()
+	defer sessionMu.Unlock()
+
+	if s, exists := sessions[uri]; exists {
+		s.mu.Lock()
+		s.refCount++
+		s.mu.Unlock()
+		return s, nil
+	}
+
+	s := &Session{
+		uri:      uri,
+		stopChan: make(chan struct{}),
+		refCount: 1,
+	}
+	if err := s.Connect(); err != nil {
+		return nil, err
+	}
+
+	sessions[uri] = s
+	go s.backgroundCheck()
+
+	return s, nil
+}
+
 // C Collection alias
-func C(collection string) *Collection {
-	return Get().Collection(collection)
+func C(collection string, uri ...string) *Collection {
+	return Get(uri...).Collection(collection)
 }
 
 // decode
