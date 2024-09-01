@@ -77,6 +77,8 @@ func TestRun(t *testing.T) {
 
 func TestMain(t *testing.T) {
 
+	defer session.Close()
+
 	// Find find all
 	var result []Person
 	if err := session.C(Table).Where(bson.D{}).FetchAll(&result); err != nil {

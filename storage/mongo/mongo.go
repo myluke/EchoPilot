@@ -52,34 +52,24 @@ func New(uri ...string) *Session {
 }
 
 func Get(uri string) (*Session, error) {
-	// First, try to read the session with a read lock
 	sessionRWMu.RLock()
 	if s, exists := sessions[uri]; exists {
-		s.mu.Lock()
-		s.refCount++
-		s.mu.Unlock()
 		sessionRWMu.RUnlock()
 		return s, nil
 	}
 	sessionRWMu.RUnlock()
 
-	// If the session doesn't exist, acquire a write lock
 	sessionRWMu.Lock()
 	defer sessionRWMu.Unlock()
 
-	// Double-check if the session was created while we were waiting for the write lock
+	// Double-check after acquiring the write lock
 	if s, exists := sessions[uri]; exists {
-		s.mu.Lock()
-		s.refCount++
-		s.mu.Unlock()
 		return s, nil
 	}
 
-	// Create a new session
 	s := &Session{
 		uri:      uri,
 		stopChan: make(chan struct{}),
-		refCount: 1,
 	}
 	if err := s.Connect(); err != nil {
 		return nil, err

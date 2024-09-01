@@ -26,7 +26,6 @@ type Session struct {
 	filter     bson.D
 	findOpts   []*options.FindOptions
 	stopChan   chan struct{}
-	refCount   int
 }
 
 // C Collection alias
@@ -256,35 +255,19 @@ func (s *Session) backgroundCheck() {
 	}
 }
 
-func (s *Session) Release() {
-	s.mu.Lock()
-	s.refCount--
-	if s.refCount == 0 {
-		s.mu.Unlock()
-		s.Close()
-		sessionRWMu.Lock()
-		delete(sessions, s.uri)
-		sessionRWMu.Unlock()
-	} else {
-		s.mu.Unlock()
-	}
-}
-
 func (s *Session) Close() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.client != nil {
-		// Signal the background goroutine to stop
 		close(s.stopChan)
-
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-
-		if err := s.client.Disconnect(ctx); err != nil {
-			log.Printf("Error disconnecting MongoDB client: %v", err)
-		}
-
+		s.client.Disconnect(ctx)
 		s.client = nil
 	}
+
+	sessionRWMu.Lock()
+	delete(sessions, s.uri)
+	sessionRWMu.Unlock()
 }
