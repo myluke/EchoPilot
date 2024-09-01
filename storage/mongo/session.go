@@ -258,14 +258,15 @@ func (s *Session) backgroundCheck() {
 
 func (s *Session) Release() {
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	s.refCount--
 	if s.refCount == 0 {
+		s.mu.Unlock()
 		s.Close()
-		sessionMu.Lock()
+		sessionRWMu.Lock()
 		delete(sessions, s.uri)
-		sessionMu.Unlock()
+		sessionRWMu.Unlock()
+	} else {
+		s.mu.Unlock()
 	}
 }
 
@@ -286,7 +287,4 @@ func (s *Session) Close() {
 
 		s.client = nil
 	}
-
-	// Reset the singleton instance
-	instance = nil
 }

@@ -15,10 +15,8 @@ import (
 var ErrNoDocuments = mongo.ErrNoDocuments
 
 var (
-	instance     *Session
-	instanceOnce sync.Once
-	sessionMu    sync.Mutex
-	sessions     = make(map[string]*Session)
+	sessionRWMu sync.RWMutex
+	sessions    = make(map[string]*Session)
 )
 
 type (
@@ -45,7 +43,7 @@ func New(uri ...string) *Session {
 	if len(uri) > 0 {
 		URI = uri[0]
 	}
-	session, err := GetSession(URI)
+	session, err := Get(URI)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -54,18 +52,23 @@ func New(uri ...string) *Session {
 	return session
 }
 
-func Get(uri ...string) *Session {
-	instanceOnce.Do(func() {
-		instance = New(uri...)
-	})
+func Get(uri string) (*Session, error) {
+	// First, try to read the session with a read lock
+	sessionRWMu.RLock()
+	if s, exists := sessions[uri]; exists {
+		s.mu.Lock()
+		s.refCount++
+		s.mu.Unlock()
+		sessionRWMu.RUnlock()
+		return s, nil
+	}
+	sessionRWMu.RUnlock()
 
-	return instance
-}
+	// If the session doesn't exist, acquire a write lock
+	sessionRWMu.Lock()
+	defer sessionRWMu.Unlock()
 
-func GetSession(uri string) (*Session, error) {
-	sessionMu.Lock()
-	defer sessionMu.Unlock()
-
+	// Double-check if the session was created while we were waiting for the write lock
 	if s, exists := sessions[uri]; exists {
 		s.mu.Lock()
 		s.refCount++
@@ -73,6 +76,7 @@ func GetSession(uri string) (*Session, error) {
 		return s, nil
 	}
 
+	// Create a new session
 	s := &Session{
 		uri:      uri,
 		stopChan: make(chan struct{}),
@@ -90,7 +94,7 @@ func GetSession(uri string) (*Session, error) {
 
 // C Collection alias
 func C(collection string, uri ...string) *Collection {
-	return Get(uri...).Collection(collection)
+	return New(uri...).Collection(collection)
 }
 
 // decode
