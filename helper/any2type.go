@@ -97,12 +97,15 @@ func ToString[T ConvertibleToString](v T) string {
 }
 
 // ConvertibleToUInt32 是一个约束，它匹配所有可以转换为uint32的类型。
-func ObjectIdToUInt32(objectId string) (uint32, error) {
-	if len(objectId) != 24 {
-		return 0, fmt.Errorf("invalid object id: %s", objectId)
+func ToUInt32[T ConvertibleToObjectID](v T) uint32 {
+	var r string
+	switch value := any(v).(type) {
+	case string:
+		r = value
+	case primitive.ObjectID:
+		r = value.Hex()
 	}
-
 	h := fnv.New32a()
-	h.Write([]byte(objectId))
-	return h.Sum32(), nil
+	h.Write([]byte(r))
+	return h.Sum32()
 }
