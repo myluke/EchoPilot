@@ -51,6 +51,20 @@ func New(uri ...string) *Session {
 	return session
 }
 
+// Close session
+func Close(uri ...string) error {
+	URI := helper.Config("MONGO_URI")
+	if len(uri) > 0 {
+		URI = uri[0]
+	}
+	session, err := Get(URI)
+	if err != nil {
+		return fmt.Errorf("failed to get session for URI %s: %v", uri, err)
+	}
+	session.Close()
+	return nil
+}
+
 func Get(uri string) (*Session, error) {
 	sessionRWMu.RLock()
 	if s, exists := sessions[uri]; exists {
