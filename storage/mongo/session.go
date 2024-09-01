@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"log"
 	"sync"
 	"time"
 
@@ -21,9 +22,10 @@ type Session struct {
 	table      *Collection
 	db         string
 	uri        string
-	m          sync.RWMutex
+	mu         sync.Mutex
 	filter     bson.D
 	findOpts   []*options.FindOptions
+	closeChan  chan struct{}
 }
 
 // C Collection alias
@@ -33,8 +35,8 @@ func (s *Session) C(collection string) *Collection {
 
 // Collection returns collection
 func (s *Session) Collection(collection string) *Collection {
-	s.m.Lock()
-	defer s.m.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if len(s.db) == 0 {
 		s.db = "test"
 	}
@@ -60,6 +62,12 @@ func (s *Session) Connect() error {
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(s.uri))
 	if err != nil {
+		return err
+	}
+
+	// add error handling
+	if err := client.Ping(ctx, readpref.Primary()); err != nil {
+		client.Disconnect(ctx)
 		return err
 	}
 
@@ -123,6 +131,7 @@ func (s *Session) FetchAll(results any) error {
 	if err != nil {
 		return err
 	}
+	defer cur.Close(ctx)
 
 	return decode(ctx, cur, results)
 }
@@ -224,4 +233,46 @@ func (s *Session) Run(size int32, callback func(*mongo.Cursor)) error {
 		return err
 	}
 	return nil
+}
+
+func (s *Session) backgroundCheck() {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if err := s.Ping(); err != nil {
+				// 失败，重试
+				if err := s.Connect(); err != nil {
+					log.Println(err)
+				}
+			}
+		case <-s.closeChan:
+			// Received signal to stop
+			return
+		}
+	}
+}
+
+func (s *Session) Close() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.client != nil {
+		// Signal the background goroutine to stop
+		close(s.closeChan)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := s.client.Disconnect(ctx); err != nil {
+			log.Printf("Error disconnecting MongoDB client: %v", err)
+		}
+
+		s.client = nil
+	}
+
+	// Reset the singleton instance
+	instance = nil
 }

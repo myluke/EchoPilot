@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"time"
+	"sync"
 
 	"github.com/mylukin/EchoPilot/helper"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,6 +13,11 @@ import (
 
 // ErrNoDocuments is mongo: no document results
 var ErrNoDocuments = mongo.ErrNoDocuments
+
+var (
+	instance *Session
+	once     sync.Once
+)
 
 type (
 	BulkWriteResult         = mongo.BulkWriteResult
@@ -39,35 +44,28 @@ func New(uri ...string) *Session {
 		URI = uri[0]
 	}
 	session := &Session{
-		uri: URI,
+		uri:       URI,
+		closeChan: make(chan struct{}),
 	}
 	if err := session.Connect(); err != nil {
 		log.Panic(err)
 	}
-	// 检查，如果失败，则重试
-	go func(session *Session) {
-		ticker := time.NewTicker(10 * time.Second)
-		for ; true; <-ticker.C {
-			if err := session.Ping(); err != nil {
-				// 失败，重试
-				if err := session.Connect(); err != nil {
-					log.Println(err)
-				}
-			}
-		}
-	}(session)
+
+	// Start the background goroutine for connection checking
+	go session.backgroundCheck()
 
 	return session
 }
 
-var instance *Session = nil
-
-// single mode for session
 func Get(uri ...string) *Session {
-	if instance != nil {
-		return instance
-	}
-	instance = New(uri...)
+	once.Do(func() {
+		URI := helper.Config("MONGO_URI")
+		if len(uri) > 0 {
+			URI = uri[0]
+		}
+		instance = New(URI)
+	})
+
 	return instance
 }
 
