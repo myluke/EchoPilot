@@ -8,13 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// ConvertibleToInt64 是一个约束，它匹配所有可以转换为int64的类型。
-type ConvertibleToInt64 interface {
-	string | int | int32 | int64
-}
-
 // ToInt64 泛型函数，尝试将不同的类型转换为int64。
-func ToInt64[T ConvertibleToInt64](v T) int64 {
+func ToInt64[T string | int | int32 | int64](v T) int64 {
 	var r int64
 
 	switch value := any(v).(type) {
@@ -31,13 +26,8 @@ func ToInt64[T ConvertibleToInt64](v T) int64 {
 	return r
 }
 
-// ConvertibleToFloat64 是一个约束，它匹配所有可以转换为float64的类型。
-type ConvertibleToFloat64 interface {
-	string | float64
-}
-
 // ToFloat64 泛型函数，尝试将不同的类型转换为float64。
-func ToFloat64[T ConvertibleToFloat64](v T) float64 {
+func ToFloat64[T string | float64](v T) float64 {
 	var r float64
 
 	switch value := any(v).(type) {
@@ -50,13 +40,8 @@ func ToFloat64[T ConvertibleToFloat64](v T) float64 {
 	return r
 }
 
-// ConvertibleToObjectID 是一个约束，它匹配所有可以转换为ObjectID的类型。
-type ConvertibleToObjectID interface {
-	string | primitive.ObjectID
-}
-
 // ToObjectID 泛型函数，尝试将不同的类型转换为ObjectID。
-func ToObjectID[T ConvertibleToObjectID](v T) primitive.ObjectID {
+func ToObjectID[T string | primitive.ObjectID](v T) primitive.ObjectID {
 	var r primitive.ObjectID
 
 	switch value := any(v).(type) {
@@ -69,13 +54,8 @@ func ToObjectID[T ConvertibleToObjectID](v T) primitive.ObjectID {
 	return r
 }
 
-// ConvertibleToString 是一个约束，它匹配所有可以转换为string的类型。
-type ConvertibleToString interface {
-	float32 | float64 | int | int64 | string
-}
-
 // ToString 泛型函数，尝试将不同的类型转换为string。
-func ToString[T ConvertibleToString](v T) string {
+func ToString[T float32 | float64 | int | int64 | string](v T) string {
 	var r string
 
 	switch value := any(v).(type) {
@@ -97,11 +77,13 @@ func ToString[T ConvertibleToString](v T) string {
 }
 
 // ConvertibleToUInt32 是一个约束，它匹配所有可以转换为uint32的类型。
-func ToUInt32[T ConvertibleToObjectID](v T) uint32 {
+func ToUInt32[T string | int64 | primitive.ObjectID](v T) uint32 {
 	var r string
 	switch value := any(v).(type) {
 	case string:
 		r = value
+	case int64:
+		r = strconv.FormatInt(value, 10)
 	case primitive.ObjectID:
 		r = value.Hex()
 	}
