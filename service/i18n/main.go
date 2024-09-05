@@ -6,9 +6,7 @@ import (
 	"io"
 
 	"github.com/labstack/echo/v4"
-
 	"github.com/mylukin/easy-i18n/i18n"
-
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -38,76 +36,58 @@ func Make(lang any) context.Context {
 	return context.WithValue(ctx, I18nCtxKey, i18n.NewPrinter(lang))
 }
 
+// String is like fmt.Sprint, but using language-specific formatting.
+func String[T any](ctx T) string {
+	return getPrinter(ctx).String()
+}
+
 // Printf is like fmt.Printf, but using language-specific formatting.
-func Printf(ctx any, format string, args ...any) {
+func Printf[T any](ctx T, format string, args ...any) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf(format, args...)
 		}
 	}()
-	var p *i18n.Printer
-	switch _ctx := ctx.(type) {
-	case echo.Context:
-		p = _ctx.Get("Language").(*i18n.Printer)
-	case tele.Context:
-		p = _ctx.Get("Language").(*i18n.Printer)
-	case context.Context:
-		p = _ctx.Value(I18nCtxKey).(*i18n.Printer)
-	case *i18n.Printer:
-		p = _ctx
-	default:
-		panic("i18n ctx error")
-	}
-	p.Printf(format, args...)
+	getPrinter(ctx).Printf(format, args...)
 }
 
 // Sprintf is like fmt.Sprintf, but using language-specific formatting.
-func Sprintf(ctx any, format string, args ...any) (result string) {
+func Sprintf[T any](ctx T, format string, args ...any) (result string) {
 	defer func() {
 		if err := recover(); err != nil {
 			result = fmt.Sprintf(format, args...)
 		}
 	}()
-	var p *i18n.Printer
-	switch _ctx := ctx.(type) {
-	case echo.Context:
-		p = _ctx.Get("Language").(*i18n.Printer)
-	case tele.Context:
-		p = _ctx.Get("Language").(*i18n.Printer)
-	case context.Context:
-		p = _ctx.Value(I18nCtxKey).(*i18n.Printer)
-	case *i18n.Printer:
-		p = _ctx
-	default:
-		panic("i18n ctx error")
-	}
-	return p.Sprintf(format, args...)
+	return getPrinter(ctx).Sprintf(format, args...)
 }
 
 // Fprintf is like fmt.Fprintf, but using language-specific formatting.
-func Fprintf(w io.Writer, ctx any, key string, args ...any) (n int, resErr error) {
+func Fprintf[T any](w io.Writer, ctx T, key string, args ...any) (n int, resErr error) {
 	defer func() {
 		if err := recover(); err != nil {
 			n, resErr = fmt.Fprintf(w, key, args...)
 		}
 	}()
-	var p *i18n.Printer
-	switch _ctx := ctx.(type) {
-	case echo.Context:
-		p = _ctx.Get("Language").(*i18n.Printer)
-	case tele.Context:
-		p = _ctx.Get("Language").(*i18n.Printer)
-	case context.Context:
-		p = _ctx.Value(I18nCtxKey).(*i18n.Printer)
-	case *i18n.Printer:
-		p = _ctx
-	default:
-		panic("i18n ctx error")
-	}
-	return p.Fprintf(w, key, args...)
+	return getPrinter(ctx).Fprintf(w, key, args...)
 }
 
 // Plural is plural
 func Plural(cases ...any) []i18n.PluralRule {
 	return i18n.Plural(cases...)
+}
+
+// getPrinter 是一个泛型函数，用于获取 i18n.Printer
+func getPrinter[T any](ctx T) *i18n.Printer {
+	switch c := any(ctx).(type) {
+	case echo.Context:
+		return c.Get("Language").(*i18n.Printer)
+	case tele.Context:
+		return c.Get("Language").(*i18n.Printer)
+	case context.Context:
+		return c.Value(I18nCtxKey).(*i18n.Printer)
+	case *i18n.Printer:
+		return c
+	default:
+		panic("i18n ctx error")
+	}
 }
