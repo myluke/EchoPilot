@@ -1,7 +1,6 @@
 package i18n
 
 import (
-	"context"
 	"fmt"
 	"io"
 
@@ -10,14 +9,8 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-// i18nKey is string
-type i18nKey string
-
 // Domain is domain
 type Domain = i18n.Domain
-
-// I18nCtxKey is context key
-const I18nCtxKey i18nKey = "i18n-ctx"
 
 // NewPrinter is new printer
 func NewPrinter(lang any) *i18n.Printer {
@@ -31,14 +24,8 @@ func SetLang(lang any) *i18n.Printer {
 }
 
 // Make is make language printer
-func Make(lang any) context.Context {
-	ctx, _ := context.WithCancel(context.Background())
-	return context.WithValue(ctx, I18nCtxKey, i18n.NewPrinter(lang))
-}
-
-// String is like fmt.Sprint, but using language-specific formatting.
-func String[T any](ctx T) string {
-	return getPrinter(ctx).String()
+func Make(lang any) *i18n.Printer {
+	return i18n.NewPrinter(lang)
 }
 
 // Printf is like fmt.Printf, but using language-specific formatting.
@@ -83,8 +70,6 @@ func getPrinter[T any](ctx T) *i18n.Printer {
 		return c.Get("Language").(*i18n.Printer)
 	case tele.Context:
 		return c.Get("Language").(*i18n.Printer)
-	case context.Context:
-		return c.Value(I18nCtxKey).(*i18n.Printer)
 	case *i18n.Printer:
 		return c
 	default:
