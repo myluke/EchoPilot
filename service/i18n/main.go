@@ -10,7 +10,12 @@ import (
 )
 
 // Domain is domain
-type Domain = i18n.Domain
+type (
+	Domain     = i18n.Domain
+	Printer    = i18n.Printer
+	PluralRule = i18n.PluralRule
+	Message    = i18n.Message
+)
 
 // NewPrinter is new printer
 func NewPrinter(lang any) *i18n.Printer {
