@@ -182,14 +182,14 @@ func AddPriorityQueue(queueKey string, i interface{}, priority int64) error {
 
 // RunQueue
 // // 一条一条的处理
-// redis.RunQueue("task_queue", 10, "+inf", func(data []byte) (interface{}, error) {
+// redis.RunQueue("task_queue", 10, math.MaxFloat64, func(data []byte) (interface{}, error) {
 // 	log.Infof("data: %s", string(data))
 // 	return nil, nil
 // })
 
 // // 批量处理
 //
-//	redis.RunQueue("task_queue", 10, "+inf", func(data []byte) (interface{}, error) {
+//	redis.RunQueue("task_queue", 10, math.MaxFloat64, func(data []byte) (interface{}, error) {
 //		log.Infof("data: %s", string(data))
 //		return nil, nil
 //	}, func(results []interface{}) error {
