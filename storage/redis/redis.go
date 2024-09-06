@@ -180,28 +180,49 @@ func AddPriorityQueue(queueKey string, i interface{}, priority int64) error {
 	return AddQueueByScore(queueKey, i, float64(priority))
 }
 
-// RunQueue
-// // 一条一条的处理
-// redis.RunQueue("task_queue", 10, math.MaxFloat64, func(data []byte) (interface{}, error) {
-// 	log.Infof("data: %s", string(data))
-// 	return nil, nil
-// })
-
-// // 批量处理
+// RunQueue processes tasks from a Redis sorted set queue.
 //
-//	redis.RunQueue("task_queue", 10, math.MaxFloat64, func(data []byte) (interface{}, error) {
-//		log.Infof("data: %s", string(data))
+// Example usage:
+//
+// 1. Process tasks one by one:
+//
+//	redis.RunQueue("task_queue", 10, "inf", func(data []byte) (interface{}, error) {
+//		log.Infof("Processing task: %s", string(data))
+//		// Process the task here
 //		return nil, nil
-//	}, func(results []interface{}) error {
-//		// 在这里批量处理上面的返回结果
-//		log.Infof("results: %v", results)
-//		return nil
 //	})
-func RunQueue(queueKey string, batchNum int, scoreMax float64, callback func([]byte) (interface{}, error), callbacks ...func([]interface{}) error) {
+//
+// 2. Process tasks in batches:
+//
+//	redis.RunQueue("task_queue", 10, "inf", func(data []byte) (interface{}, error) {
+//		// Process individual task
+//		return processTask(data), nil
+//	}, func(results []interface{}) error {
+//		// Batch process the results
+//		return batchProcessResults(results)
+//	})
+//
+// 3. Process time-based tasks:
+//
+//	redis.RunQueue("delayed_task_queue", 10, "time", func(data []byte) (interface{}, error) {
+//		log.Infof("Processing delayed task: %s", string(data))
+//		// Process the delayed task here
+//		return nil, nil
+//	})
+//
+// Parameters:
+//   - queueKey: The key of the Redis sorted set queue
+//   - batchNum: The maximum number of tasks to process in each iteration
+//   - qType: Use "inf" for regular queue, "time" for time-based queue
+//   - callback: Function to process each task
+//   - callbacks: Optional function(s) for batch processing results
+func RunQueue(queueKey string, batchNum int, qType string, callback func([]byte) (interface{}, error), callbacks ...func([]interface{}) error) {
 	queueKey = GetCacheKey(queueKey)
 	cRedis := GetRedis()
 	ticker := time.NewTicker(1 * time.Second)
 	ctx := context.Background()
+
+	isTimeCheck := qType == "time"
 
 	for range ticker.C {
 		results := []interface{}{}
@@ -209,10 +230,10 @@ func RunQueue(queueKey string, batchNum int, scoreMax float64, callback func([]b
 		var mu sync.Mutex
 
 		for i := 0; i < batchNum; i++ {
-			// 使用 ZPOPMIN 获取并移动任务
+			// Use ZPOPMIN to get and move tasks
 			res, err := cRedis.ZPopMin(ctx, queueKey, 1).Result()
 			if err == redis.Nil || len(res) == 0 {
-				// 队列为空，继续等待下一次查询
+				// Queue is empty, continue waiting for the next query
 				break
 			} else if err != nil {
 				log.Errorf("Error popping task from %s: %s", queueKey, err)
@@ -222,20 +243,23 @@ func RunQueue(queueKey string, batchNum int, scoreMax float64, callback func([]b
 			data := res[0].Member.(string)
 			score := res[0].Score
 
-			if score > scoreMax {
-				// 如果当前元素的分数大于scoreMax，返回队列并跳过
-				cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: res[0].Member})
-				continue
+			if isTimeCheck {
+				currentTime := float64(time.Now().Unix())
+				if score > currentTime {
+					// If the current element's time is later than the current time, return to the queue and skip
+					cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: res[0].Member})
+					continue
+				}
 			}
 
 			wg.Add(1)
-			// 异步执行函数
+			// Execute function asynchronously
 			go func(data string, score float64) {
 				defer wg.Done()
 				r, err := callback([]byte(data))
 				if err != nil {
 					log.Error(err)
-					// 将处理失败的任务重新放回队列
+					// Put the failed task back into the queue
 					cRedis.ZAdd(ctx, queueKey, redis.Z{Score: score, Member: res[0].Member})
 					return
 				}
@@ -248,10 +272,10 @@ func RunQueue(queueKey string, batchNum int, scoreMax float64, callback func([]b
 			}(data, score)
 		}
 
-		// 等待所有异步处理完成
+		// Wait for all asynchronous processing to complete
 		wg.Wait()
 
-		// 批量操作执行
+		// Execute batch operations
 		if len(results) > 0 {
 			for _, cb := range callbacks {
 				if err := cb(results); err != nil {
