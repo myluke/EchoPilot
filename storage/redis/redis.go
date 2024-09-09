@@ -124,9 +124,14 @@ func TTL(key string) *redis.DurationCmd {
 	return GetRedis().TTL(context.Background(), GetCacheKey(key))
 }
 
+// GetAnyDoKey
+func GetAnyDoKey(name string, expiration time.Duration) string {
+	return fmt.Sprintf("EveryAnyDo:%s:%s", name, expiration.String())
+}
+
 // AnyDo
 func AnyDo(name string, expiration time.Duration) int {
-	ckey := fmt.Sprintf("EveryAnyDo:%s:%s", name, expiration.String())
+	ckey := GetAnyDoKey(name, expiration)
 	icr, err := IncrBy(ckey, 1).Result()
 	if err != nil {
 		return 0
