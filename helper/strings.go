@@ -192,6 +192,11 @@ func ClearSpace(s string) string {
 	// 清理标签结束处的空白字符
 	s = regexp.MustCompile(`(>)\s+`).ReplaceAllString(s, "$1")
 	// 清理其他连续的空白字符，将其替换为单个空格，但不影响标签内的属性
-	s = regexp.MustCompile(`(?:\s+)(?![^<>]*>)`).ReplaceAllString(s, " ")
-	return s
+	s = regexp.MustCompile(`\s+([^<>]*[^<>\s])?`).ReplaceAllStringFunc(s, func(match string) string {
+		if strings.Contains(match, "<") || strings.Contains(match, ">") {
+			return match // 保留标签内的空白
+		}
+		return " " + strings.TrimSpace(match)
+	})
+	return strings.TrimSpace(s)
 }
