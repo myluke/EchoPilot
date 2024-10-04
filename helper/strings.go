@@ -185,18 +185,25 @@ func RunesToHexKey(runes []rune) string {
 
 // ClearSpace is clear space
 func ClearSpace(s string) string {
-	// 清理 HTML 标签之间的空白字符（包括空格、制表符和换行符）
-	s = regexp.MustCompile(`>\s+<`).ReplaceAllString(s, "><")
-	// 清理标签开始处的空白字符
-	s = regexp.MustCompile(`\s+(<)`).ReplaceAllString(s, "$1")
-	// 清理标签结束处的空白字符
-	s = regexp.MustCompile(`(>)\s+`).ReplaceAllString(s, "$1")
-	// 清理其他连续的空白字符，将其替换为单个空格，但不影响标签内的属性
-	s = regexp.MustCompile(`\s+([^<>]*[^<>\s])?`).ReplaceAllStringFunc(s, func(match string) string {
-		if strings.Contains(match, "<") || strings.Contains(match, ">") {
-			return match // 保留标签内的空白
+	if len(s) == 0 {
+		return s
+	}
+
+	// 移除制表符、换行符和回车符
+	s = strings.Map(func(r rune) rune {
+		if r == '\t' || r == '\n' || r == '\r' {
+			return ' ' // 将这些字符替换为空格，而不是直接删除
 		}
-		return " " + strings.TrimSpace(match)
-	})
+		return r
+	}, s)
+
+	// 替换 HTML 实体 &nbsp;
+	s = strings.ReplaceAll(s, "&nbsp;", " ")
+
+	// 替换连续的空格
+	for strings.Contains(s, "  ") {
+		s = strings.ReplaceAll(s, "  ", " ")
+	}
+
 	return strings.TrimSpace(s)
 }
