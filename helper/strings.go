@@ -192,7 +192,7 @@ func ClearSpace(s string) string {
 	// 移除制表符、换行符和回车符
 	s = strings.Map(func(r rune) rune {
 		if r == '\t' || r == '\n' || r == '\r' {
-			return ' ' // 将这些字符替换为空格，而不是直接删除
+			return ' ' // 将这些字符替换为空格
 		}
 		return r
 	}, s)
@@ -200,10 +200,13 @@ func ClearSpace(s string) string {
 	// 替换 HTML 实体 &nbsp;
 	s = strings.ReplaceAll(s, "&nbsp;", " ")
 
+	// 使用正则表达式清理 HTML 标签之间的空白
+	re := regexp.MustCompile(`>\s+<`)
+	s = re.ReplaceAllString(s, "><")
+
 	// 替换连续的空格
-	for strings.Contains(s, "  ") {
-		s = strings.ReplaceAll(s, "  ", " ")
-	}
+	re = regexp.MustCompile(`\s+`)
+	s = re.ReplaceAllString(s, " ")
 
 	return strings.TrimSpace(s)
 }
