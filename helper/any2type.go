@@ -3,91 +3,91 @@ package helper
 import (
 	"fmt"
 	"hash/fnv"
+	"reflect"
 	"strconv"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// ToInt64 泛型函数，尝试将不同的类型转换为int64。
-func ToInt64[T string | int | int32 | int64](v T) int64 {
-	var r int64
+// 定义一个通用的类型约束
+type Convertible interface {
+	~string | ~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
+		~float32 | ~float64 | ~bool | primitive.ObjectID
+}
 
+// 通用的转换函数
+func convert[T Convertible](v T) string {
 	switch value := any(v).(type) {
 	case string:
-		r, _ = strconv.ParseInt(value, 10, 64)
-	case int:
-		r = int64(value)
-	case int32:
-		r = int64(value)
-	case int64:
-		r = value
+		return value
+	case int, int8, int16, int32, int64:
+		return strconv.FormatInt(reflect.ValueOf(value).Int(), 10)
+	case uint, uint8, uint16, uint32, uint64:
+		return strconv.FormatUint(reflect.ValueOf(value).Uint(), 10)
+	case float32, float64:
+		return strconv.FormatFloat(reflect.ValueOf(value).Float(), 'f', -1, 64)
+	case bool:
+		return strconv.FormatBool(value)
+	case primitive.ObjectID:
+		return value.Hex()
+	default:
+		return fmt.Sprintf("%v", value)
 	}
+}
 
+// ToInt64 泛型函数，尝试将不同的类型转换为int64。
+func ToInt64[T Convertible](v T) int64 {
+	str := convert(v)
+	r, _ := strconv.ParseInt(str, 10, 64)
 	return r
 }
 
 // ToFloat64 泛型函数，尝试将不同的类型转换为float64。
-func ToFloat64[T string | float64](v T) float64 {
-	var r float64
-
-	switch value := any(v).(type) {
-	case string:
-		r, _ = strconv.ParseFloat(value, 64)
-	case float64:
-		r = value
-	}
-
+func ToFloat64[T Convertible](v T) float64 {
+	str := convert(v)
+	r, _ := strconv.ParseFloat(str, 64)
 	return r
 }
 
 // ToObjectID 泛型函数，尝试将不同的类型转换为ObjectID。
-func ToObjectID[T string | primitive.ObjectID](v T) primitive.ObjectID {
-	var r primitive.ObjectID
-
-	switch value := any(v).(type) {
-	case string:
-		r, _ = primitive.ObjectIDFromHex(value)
-	case primitive.ObjectID:
-		r = value
-	}
-
+func ToObjectID[T Convertible](v T) primitive.ObjectID {
+	str := convert(v)
+	r, _ := primitive.ObjectIDFromHex(str)
 	return r
 }
 
 // ToString 泛型函数，尝试将不同的类型转换为string。
-func ToString[T float32 | float64 | int | int64 | string](v T) string {
-	var r string
+func ToString[T Convertible](v T) string {
+	return convert(v)
+}
 
-	switch value := any(v).(type) {
-	case float32:
-		r = strconv.FormatFloat(float64(value), 'f', -1, 64)
-	case float64:
-		r = strconv.FormatFloat(value, 'f', -1, 64)
-	case int:
-		r = strconv.Itoa(value)
-	case int64:
-		r = strconv.FormatInt(value, 10)
-	case string:
-		r = value
-	default:
-		r = fmt.Sprintf("%v", value)
-	}
+// ToUInt32 泛型函数，尝试将不同的类型转换为uint32。
+func ToUInt32[T Convertible](v T) uint32 {
+	str := convert(v)
+	r, _ := strconv.ParseUint(str, 10, 32)
+	return uint32(r)
+}
 
+// ToUInt64 泛型函数，尝试将不同的类型转换为uint64。
+func ToUInt64[T Convertible](v T) uint64 {
+	str := convert(v)
+	r, _ := strconv.ParseUint(str, 10, 64)
 	return r
 }
 
-// ConvertibleToUInt32 是一个约束，它匹配所有可以转换为uint32的类型。
-func ToUInt32[T string | int64 | primitive.ObjectID](v T) uint32 {
-	var r string
-	switch value := any(v).(type) {
-	case string:
-		r = value
-	case int64:
-		r = strconv.FormatInt(value, 10)
-	case primitive.ObjectID:
-		r = value.Hex()
-	}
+// ToFNV32Hash 泛型函数，使用 FNV-1a 算法将输入转换为 32 位哈希值。
+func ToFNV32Hash[T Convertible](v T) uint32 {
+	str := convert(v)
 	h := fnv.New32a()
-	h.Write([]byte(r))
+	h.Write([]byte(str))
 	return h.Sum32()
+}
+
+// ToFNV64Hash 泛型函数，使用 FNV-1a 算法将输入转换为 64 位哈希值。
+func ToFNV64Hash[T Convertible](v T) uint64 {
+	str := convert(v)
+	h := fnv.New64a()
+	h.Write([]byte(str))
+	return h.Sum64()
 }
