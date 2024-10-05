@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -209,4 +210,42 @@ func ClearSpace(s string) string {
 	s = re.ReplaceAllString(s, " ")
 
 	return strings.TrimSpace(s)
+}
+
+// ParseHumanNum 将人类可读的数字格式（如 "10k"、"10M"）转换为实际的整数
+// 如果无法解析，则返回0
+func ParseHumanNum(s string) int64 {
+	// 将字符串转换为小写，以便不区分大小写
+	s = strings.ToLower(strings.TrimSpace(s))
+
+	// 定义单位映射
+	units := map[string]float64{
+		"k": 1000,
+		"m": 1000000,
+		"b": 1000000000,
+	}
+
+	// 初始化单位
+	var unit float64 = 1
+
+	// 检查并移除单位后缀
+	for suffix, value := range units {
+		if strings.HasSuffix(s, suffix) {
+			unit = value
+			s = strings.TrimSuffix(s, suffix)
+			break
+		}
+	}
+
+	// 移除所有非数字和非小数点的字符
+	s = regexp.MustCompile(`[^\d\.]+`).ReplaceAllString(s, "")
+
+	// 解析数字
+	number, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0 // 如果无法解析，直接返回0
+	}
+
+	// 计算最终结果并返回
+	return int64(number * unit)
 }
