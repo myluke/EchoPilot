@@ -238,7 +238,7 @@ func ParseHumanNum(s string) int64 {
 	}
 
 	// 移除所有非数字和非小数点的字符
-	s = regexp.MustCompile(`[^\d\.]+`).ReplaceAllString(s, "")
+	s = regexp.MustCompile(`[^\-\d\.]+`).ReplaceAllString(s, "")
 
 	// 解析数字
 	number, err := strconv.ParseFloat(s, 64)
