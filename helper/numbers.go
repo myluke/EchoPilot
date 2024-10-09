@@ -21,16 +21,16 @@ func NiceNumber(num any) string {
 		n = int64(i)
 	}
 	if n > 1000000000000 {
-		return fmt.Sprintf("%.1f T", float64(n)*0.000000000001)
+		return TrimLastZero(float64(n)*0.000000000001, "%.1f") + "T"
 	}
 	if n > 1000000000 {
-		return fmt.Sprintf("%.1f B", float64(n)*0.000000001)
+		return TrimLastZero(float64(n)*0.000000001, "%.1f") + "B"
 	}
 	if n > 1000000 {
-		return fmt.Sprintf("%.1f M", float64(n)*0.000001)
+		return TrimLastZero(float64(n)*0.000001, "%.1f") + "M"
 	}
 	if n > 1000 {
-		return fmt.Sprintf("%.1f K", float64(n)*0.001)
+		return TrimLastZero(float64(n)*0.001, "%.1f") + "K"
 	}
 	return fmt.Sprintf("%d", n)
 }
