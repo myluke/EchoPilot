@@ -70,6 +70,12 @@ func (c *Collection) Index(keys ...bson.M) ([]string, error) {
 		if v, ok := val["unique"]; ok && v.(bool) {
 			opts.SetUnique(true)
 		}
+		if v, ok := val["weights"]; ok {
+			opts.SetWeights(v.(bson.M))
+		}
+		if v, ok := val["language"]; ok {
+			opts.SetDefaultLanguage(v.(string))
+		}
 		newIndexes = append(newIndexes, mongo.IndexModel{
 			Keys:    val["keys"],
 			Options: opts,
