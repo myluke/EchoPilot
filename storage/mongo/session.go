@@ -17,15 +17,16 @@ import (
 
 // Session mongo session
 type Session struct {
-	client     *mongo.Client
-	collection *mongo.Collection
-	table      *Collection
-	db         string
-	uri        string
-	mu         sync.Mutex
-	filter     bson.D
-	findOpts   []*options.FindOptions
-	stopChan   chan struct{}
+	client      *mongo.Client
+	collection  *mongo.Collection
+	table       *Collection
+	db          string
+	uri         string
+	mu          sync.Mutex
+	filter      bson.D
+	findOpts    []*options.FindOptions
+	findOneOpts []*options.FindOneOptions
+	stopChan    chan struct{}
 }
 
 // C Collection alias
@@ -96,8 +97,18 @@ func (s *Session) DB(db string) *Database {
 }
 
 // SetOpts set find options
-func (s *Session) SetOpts(opts ...*options.FindOptions) *Session {
-	s.findOpts = opts
+func (s *Session) SetOpts(opts ...interface{}) *Session {
+	s.findOpts = make([]*options.FindOptions, 0)
+	s.findOneOpts = make([]*options.FindOneOptions, 0)
+
+	for _, opt := range opts {
+		switch o := opt.(type) {
+		case *options.FindOptions:
+			s.findOpts = append(s.findOpts, o)
+		case *options.FindOneOptions:
+			s.findOneOpts = append(s.findOneOpts, o)
+		}
+	}
 	return s
 }
 
@@ -105,7 +116,7 @@ func (s *Session) SetOpts(opts ...*options.FindOptions) *Session {
 func (s *Session) Find(result any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	data, err := s.collection.FindOne(ctx, s.filter).Raw()
+	data, err := s.collection.FindOne(ctx, s.filter, s.findOneOpts...).Raw()
 	if err != nil {
 		return err
 	}
