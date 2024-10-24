@@ -31,6 +31,9 @@ type (
 	IndexSpecification      = mongo.IndexSpecification
 	CollectionSpecification = mongo.CollectionSpecification
 	Pipeline                = mongo.Pipeline
+	SessionContext          = mongo.SessionContext
+	Cursor                  = mongo.Cursor
+	Client                  = mongo.Client
 )
 
 // New session
