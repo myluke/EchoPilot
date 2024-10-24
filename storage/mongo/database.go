@@ -12,6 +12,11 @@ type Database struct {
 	database *mongo.Database
 }
 
+// get database
+func (d *Database) Get() *mongo.Database {
+	return d.database
+}
+
 // CollectionNames returns the collection names present in database.
 func (d *Database) CollectionNames() ([]string, error) {
 	return d.database.ListCollectionNames(context.Background(), options.ListCollectionsOptions{})

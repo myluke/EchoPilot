@@ -91,6 +91,16 @@ func (s *Session) Client() *mongo.Client {
 	return s.client
 }
 
+// GetCollection return mongo Collection
+func (s *Session) GetCollection() *mongo.Collection {
+	return s.collection
+}
+
+// get table
+func (s *Session) GetTable() *Collection {
+	return s.table
+}
+
 // DB returns a value representing the named database.
 func (s *Session) DB(db string) *Database {
 	return &Database{database: s.client.Database(db)}

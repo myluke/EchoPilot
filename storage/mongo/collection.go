@@ -17,6 +17,11 @@ type Collection struct {
 	collection *mongo.Collection
 }
 
+// get collection
+func (c *Collection) Get() *mongo.Collection {
+	return c.collection
+}
+
 // Index creates an index with the given keys and options.
 func (c *Collection) Index(keys ...bson.M) ([]string, error) {
 	ctx := context.Background()
