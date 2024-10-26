@@ -78,7 +78,7 @@ func FormatURL(base string, html string) string {
 			var newURL string
 			if strings.HasPrefix(urlStr, "//") {
 				// 处理协议相对URL
-				newURL = baseHost[:strings.Index(baseHost, ":")+1] + urlStr
+				newURL = baseURL.Scheme + ":" + urlStr
 			} else if strings.HasPrefix(urlStr, "/") {
 				// 处理绝对路径
 				newURL = baseHost + urlStr
@@ -99,7 +99,14 @@ func FormatURL(base string, html string) string {
 						break
 					}
 				}
-				newURL = baseHost + tempBasePath + "/" + tempURL
+				if tempBasePath == "/" {
+					tempBasePath = ""
+				}
+				if tempURL != "" {
+					newURL = baseHost + tempBasePath + "/" + tempURL
+				} else {
+					newURL = baseHost + tempBasePath
+				}
 			} else if strings.HasPrefix(urlStr, "./") {
 				// 处理当前路径 ./
 				newURL = baseFullURL + "/" + urlStr[2:]
@@ -109,12 +116,22 @@ func FormatURL(base string, html string) string {
 			}
 
 			// 清理URL
-			newURL = regexp.MustCompile(`/+`).ReplaceAllString(newURL, "/")
-			if idx := strings.Index(newURL, "://"); idx != -1 {
+			// 1. 处理多个斜杠
+			for strings.Contains(newURL, "://") {
+				idx := strings.Index(newURL, "://")
 				protocol := newURL[:idx+3]
-				rest := newURL[idx+3:]
-				newURL = protocol + strings.TrimLeft(rest, "/")
+				rest := strings.TrimLeft(newURL[idx+3:], "/")
+				newURL = protocol + rest
 			}
+
+			// 2. 处理其他多余的斜杠
+			parts := strings.SplitN(newURL, "://", 2)
+			if len(parts) == 2 {
+				parts[1] = strings.ReplaceAll(parts[1], "//", "/")
+				newURL = parts[0] + "://" + parts[1]
+			}
+
+			// 3. 移除URL末尾的斜杠（除非是域名根路径）
 			if !strings.HasSuffix(newURL, "://") && strings.HasSuffix(newURL, "/") {
 				newURL = strings.TrimRight(newURL, "/")
 			}
