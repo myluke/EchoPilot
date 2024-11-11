@@ -76,7 +76,7 @@ func ToFloat64[T Convertible](v T) float64 {
 
 // ToObjectID 泛型函数，尝试将不同的类型转换为ObjectID。
 func ToObjectID[T Convertible](v T) primitive.ObjectID {
-	str := convert(v).(string)
+	str := ToString(v)
 	r, _ := primitive.ObjectIDFromHex(str)
 	return r
 }
@@ -152,7 +152,7 @@ func ToUInt64[T Convertible](v T) uint64 {
 
 // ToFNV32Hash 泛型函数，使用 FNV-1a 算法将输入转换为 32 位哈希值。
 func ToFNV32Hash[T Convertible](v T) uint32 {
-	str := convert(v).(string)
+	str := ToString(v)
 	h := fnv.New32a()
 	h.Write([]byte(str))
 	return h.Sum32()
@@ -160,7 +160,7 @@ func ToFNV32Hash[T Convertible](v T) uint32 {
 
 // ToFNV64Hash 泛型函数，使用 FNV-1a 算法将输入转换为 64 位哈希值。
 func ToFNV64Hash[T Convertible](v T) uint64 {
-	str := convert(v).(string)
+	str := ToString(v)
 	h := fnv.New64a()
 	h.Write([]byte(str))
 	return h.Sum64()
