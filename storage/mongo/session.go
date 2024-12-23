@@ -41,6 +41,9 @@ func (s *Session) Collection(collection string) *Collection {
 	if len(s.db) == 0 {
 		s.db = "test"
 	}
+	if s.client == nil {
+		return &Collection{}
+	}
 	d := &Database{database: s.client.Database(s.db)}
 	return &Collection{collection: d.database.Collection(collection)}
 }
