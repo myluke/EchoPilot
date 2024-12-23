@@ -46,6 +46,9 @@ func New(uri ...string) *Session {
 	if len(uri) > 0 {
 		URI = uri[0]
 	}
+	if URI == "" {
+		return &Session{}
+	}
 	session, err := Get(URI)
 	if err != nil {
 		log.Panic(err)

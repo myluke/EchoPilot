@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -24,6 +25,9 @@ func (c *Collection) Get() *mongo.Collection {
 
 // Index creates an index with the given keys and options.
 func (c *Collection) Index(keys ...bson.M) ([]string, error) {
+	if c.collection == nil {
+		return nil, errors.New("collection is nil")
+	}
 	ctx := context.Background()
 
 	// 检查是否有唯一索引
