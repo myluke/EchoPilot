@@ -151,19 +151,19 @@ func ToUInt64[T Convertible](v T) uint64 {
 }
 
 // ToFNV32Hash 泛型函数，使用 FNV-1a 算法将输入转换为 32 位哈希值。
-func ToFNV32Hash[T Convertible](v T) uint32 {
+func ToFNV32Hash[T Convertible](v T) string {
 	str := ToString(v)
 	h := fnv.New32a()
 	h.Write([]byte(str))
-	return h.Sum32()
+	return strconv.FormatUint(uint64(h.Sum32()), 10)
 }
 
 // ToFNV64Hash 泛型函数，使用 FNV-1a 算法将输入转换为 64 位哈希值。
-func ToFNV64Hash[T Convertible](v T) uint64 {
+func ToFNV64Hash[T Convertible](v T) string {
 	str := ToString(v)
 	h := fnv.New64a()
 	h.Write([]byte(str))
-	return h.Sum64()
+	return strconv.FormatUint(h.Sum64(), 10)
 }
 
 // 修改 ToInt32 函数
