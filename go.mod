@@ -14,7 +14,7 @@ require (
 	github.com/labstack/gommon v0.4.2
 	github.com/mylukin/easy-i18n v0.1.0
 	github.com/mylukin/gojieba v1.1.3-0.20210616043045-c6f534e4bd21
-	github.com/redis/go-redis/v9 v9.5.0
+	github.com/redis/go-redis/v9 v9.11.0
 	github.com/stretchr/testify v1.8.4
 	github.com/telkomdev/go-stash v1.0.3
 	github.com/urfave/cli/v2 v2.27.4
@@ -30,7 +30,7 @@ require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
