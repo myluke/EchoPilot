@@ -1,26 +1,21 @@
-# service
+# Service
 
-```
-├── LICENSE
-├── README.md
-├── emoji
-│   ├── emoji.go
-│   ├── emoji.json
-│   ├── emoji_test.go
-│   └── import
-│       └── main.go
-├── go.mod
-├── go.sum
-├── i18n
-│   ├── main.go
-│   └── main_test.go
-├── jieba
-│   ├── main.go
-│   └── main_test.go
-├── logstash
-│   └── main.go
-└── simhash
-    └── main.go
+文本处理和基础服务模块，提供多种常用功能。
 
-6 directories, 14 files
-```
+## 服务列表
+
+### 文本处理
+- **emoji** - Emoji处理服务，支持emoji查找、替换和移除
+- **i18n** - 国际化服务，支持多语言翻译和格式化
+- **jieba** - 中文分词服务，支持关键词提取和分词
+- **sensitive** - 敏感词过滤服务，支持敏感词检测、替换和过滤
+- **simhash** - 文本相似度计算服务，用于计算文本hash值和相似度
+- **detect-lang** - 语言检测服务，支持多种语言的自动检测
+
+### 基础服务
+- **logstash** - 日志处理服务，用于发送日志到logstash服务器
+- **cfr2** - Cloudflare R2对象存储服务，支持文件上传下载
+
+## 使用说明
+
+每个服务都是独立的Go包，可以单独引用和使用。具体使用方法请参考各服务目录下的代码和测试文件。

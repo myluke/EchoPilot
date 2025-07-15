@@ -1,8 +1,6 @@
 package helper
 
-import jsoniter "github.com/json-iterator/go"
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
+import "encoding/json"
 
 // JSONBody is send message
 type JSONBody map[string]any
