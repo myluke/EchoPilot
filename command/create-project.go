@@ -60,10 +60,12 @@ func createProject(packageName string) error {
 		"github.com/mylukin/EchoPilot-Template",
 		"EchoPilot-Template",
 		"{APP_NAME}",
+		"{APP_NAME_LOWER}",
 	}, []string{
 		"github.com/" + packageName,
 		projectTitle,
 		projectTitle,
+		strings.ToLower(projectTitle),
 	})
 
 	// cp .env.example .env
