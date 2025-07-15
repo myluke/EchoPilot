@@ -61,11 +61,13 @@ func createProject(packageName string) error {
 		"EchoPilot-Template",
 		"{APP_NAME}",
 		"{APP_NAME_LOWER}",
+		"{PACKAGE_NAME}",
 	}, []string{
 		"github.com/" + packageName,
 		projectTitle,
 		projectTitle,
 		strings.ToLower(projectTitle),
+		strings.ToLower(packageName),
 	})
 
 	// cp .env.example .env
