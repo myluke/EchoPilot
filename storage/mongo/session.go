@@ -296,11 +296,23 @@ func (s *Session) ExcludeFields(fields ...string) *Session {
 func (s *Session) Find(result any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	data, err := s.collection.FindOne(ctx, s.filter, s.findOneOpts...).Raw()
+
+	// Use Find method with limit(1) to ensure sorting/limiting options work
+	fo := options.MergeFindOptions(s.findOpts...)
+	if fo.Limit == nil || *fo.Limit != 1 {
+		fo.SetLimit(1)
+	}
+
+	cur, err := s.collection.Find(ctx, s.filter, fo)
 	if err != nil {
 		return err
 	}
-	return bson.Unmarshal(data, result)
+	defer cur.Close(ctx)
+
+	if cur.Next(ctx) {
+		return cur.Decode(result)
+	}
+	return mongo.ErrNoDocuments
 }
 
 // FindOne returns up to one document that matches the model (alias for Find)
