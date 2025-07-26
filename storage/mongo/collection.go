@@ -79,6 +79,9 @@ func (c *Collection) Index(keys ...bson.M) ([]string, error) {
 		if v, ok := val["unique"]; ok && v.(bool) {
 			opts.SetUnique(true)
 		}
+		if v, ok := val["sparse"]; ok && v.(bool) {
+			opts.SetSparse(true)
+		}
 		if v, ok := val["weights"]; ok {
 			opts.SetWeights(v.(bson.M))
 		}
