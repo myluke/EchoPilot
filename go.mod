@@ -29,7 +29,7 @@ require (
 	github.com/valyala/fasttemplate v1.2.2
 	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/text v0.27.0
-	gopkg.in/telebot.v3 v3.3.8
+	gopkg.in/telebot.v4 v4.0.0-beta.5
 )
 
 require (
