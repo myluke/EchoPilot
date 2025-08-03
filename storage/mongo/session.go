@@ -533,12 +533,12 @@ func (s *Session) Paginate(page, limit int, results any) (int64, error) {
 }
 
 // Run runs the given model.
-func (s *Session) Run(size int32, callback func(*mongo.Cursor)) error {
+func (s *Session) Run(size int, callback func(*mongo.Cursor)) error {
 	ctx := context.Background()
 
 	fo := options.MergeFindOptions(s.findOpts...)
 	fo.SetNoCursorTimeout(true)
-	fo.SetBatchSize(size)
+	fo.SetBatchSize(int32(size))
 	s.SetOpts(fo)
 
 	cur, err := s.collection.Find(ctx, s.filter, s.findOpts...)
