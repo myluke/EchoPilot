@@ -28,10 +28,24 @@ type Zeroer interface {
 
 // isZeroValue 检查一个值是否为其类型的零值
 func isZeroValue(v reflect.Value) bool {
-	// 首先检查是否实现了 Zeroer 接口
-	if v.Type().Implements(reflect.TypeOf((*Zeroer)(nil)).Elem()) {
-		if v.CanInterface() {
-			return v.Interface().(Zeroer).IsZero()
+	// 处理指针类型
+	if v.Kind() == reflect.Ptr {
+		// 如果是 nil 指针，返回 true（零值）
+		if v.IsNil() {
+			return true
+		}
+		// 如果指针指向的类型实现了 Zeroer 接口
+		if v.Type().Implements(reflect.TypeOf((*Zeroer)(nil)).Elem()) {
+			if v.CanInterface() {
+				return v.Interface().(Zeroer).IsZero()
+			}
+		}
+	} else {
+		// 非指针类型，检查是否实现了 Zeroer 接口
+		if v.Type().Implements(reflect.TypeOf((*Zeroer)(nil)).Elem()) {
+			if v.CanInterface() {
+				return v.Interface().(Zeroer).IsZero()
+			}
 		}
 	}
 
