@@ -83,7 +83,7 @@ func StrLimit(text string, length int) string {
 
 	textRune := []rune(text)
 	if len(textRune) > length {
-		return string(textRune[:length]) + "..."
+		return string(textRune[:length-3]) + "..."
 	}
 	return text
 }
