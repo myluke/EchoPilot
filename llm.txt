@@ -1,0 +1,407 @@
+# EchoPilot Framework LLM Documentation
+
+EchoPilot is a comprehensive Go framework providing utilities for web applications, data processing, and service integration.
+
+## Project Structure
+```
+EchoPilot/
+├── helper/      # Utility functions and helpers
+├── storage/     # Database and cache abstractions (MongoDB, Redis)
+└── service/     # Integrated services and processing modules
+```
+
+## Helper Package (@helper)
+
+The helper package provides extensive utility functions for common programming tasks.
+
+### Core Modules
+
+#### config.go - Configuration Management
+- `Config(key string, defaultValue ...string) string` - Get environment variables with defaults
+
+#### convert.go - Type Conversions
+Generic type conversion functions supporting multiple types:
+- `ToInt64[T Convertible](v T) int64`
+- `ToFloat64[T Convertible](v T) float64`
+- `ToString[T Convertible](v T) string`
+- `ToBool[T Convertible](v T) bool`
+- `ToObjectID[T Convertible](v T) primitive.ObjectID`
+- `SafeToString(v any) string` - Safe conversion with error handling
+- `IsNil(v any) bool` - Check if value is nil
+- `IsEmpty(v any) bool` - Check if value is empty
+- `DeepCopy(src any) any` - Deep copy objects
+
+#### crypto.go - Cryptographic Functions
+- `MD5(text string) string`
+- `Sha1(text string) string`
+- `HMAC(h func() hash.Hash, payload []byte, secret []byte) []byte`
+
+#### text.go - String Processing
+- `FindSubstr(content string, params ...any) string` - Find substring
+- `StrLimit(text string, length int) string` - Truncate with ellipsis
+- `Split2Tags(text string) []string` - Split text into tags
+- `Base64Encode/Decode(content string) string`
+- `CamelToSnake(s string) string` - Convert naming conventions
+- `SnakeToCamel(s string) string`
+- `RemoveAccents(s string) string`
+- `LevenshteinDistance(s1, s2 string) int` - String similarity
+
+#### slice.go - Advanced Slice Operations
+Functional programming utilities with generics:
+- `Map[T, U any](slice []T, fn func(T) U) []U`
+- `Filter[T any](slice []T, fn func(T) bool) []T`
+- `Reduce[T, U any](slice []T, fn func(U, T) U, initial U) U`
+- `Find[T any](slice []T, fn func(T) bool) (T, bool)`
+- `Unique[T comparable](slice []T) []T` - Remove duplicates
+- `Union/Intersection/Difference[T comparable](slice1, slice2 []T) []T`
+- `Chunk[T any](slice []T, size int) [][]T` - Split into chunks
+- `Flatten[T any](slices [][]T) []T` - Flatten nested slices
+
+#### math.go - Mathematical Operations
+- `RandRange(min, max int) int` - Random integers
+- `RandFloatRange(min, max float64) float64`
+- `RandString(n int) string` - Random string generation
+- `Sum/Average/Median/StandardDeviation(numbers []int64)`
+- `IsPrime(n int64) bool`
+- `GCD/LCM(a, b int64) int64` - Greatest common divisor/Least common multiple
+- `Factorial(n int64) int64`
+- `Fibonacci(n int64) int64`
+
+#### net.go - Network and HTML Utilities
+HTML Processing:
+- `EscapeHTML/UnescapeHTML(content string) string`
+- `StripHTML(s string) string` - Remove HTML tags
+- `ExtractText(html string) string` - Extract text content
+
+URL Processing:
+- `ParseURL(rawURL string) (*url.URL, error)`
+- `BuildURL(scheme, host, path string, params map[string]string) string`
+- `GetDomain(rawURL string) (string, error)`
+- `IsURL(token string) bool` - URL validation
+- `IsHTTPURL(rawURL string) bool`
+
+Network Validation:
+- `IsNetEmail(email string) bool`
+- `IsIP(ip string) bool` - IPv4/IPv6 validation
+- `IsPrivateIP(ip string) bool`
+- `IsDomain(domain string) bool`
+- `IsMAC(mac string) bool`
+
+Network Utilities:
+- `PingHost(host string, timeout int) bool`
+- `GetLocalIPs() ([]string, error)`
+- `GetOutboundIP() (string, error)`
+- `IsPortOpen(host string, port int, timeout int) bool`
+
+#### validate.go - Comprehensive Validation
+Identity Validation:
+- `IsValidEmail(email string) bool`
+- `IsChinesePhone(phone string) bool` - Chinese phone numbers
+- `IsIDCard(idCard string) bool` - Chinese ID cards
+- `IsObjectID(v string) bool` - MongoDB ObjectID
+
+Password/Security:
+- `IsPassword(password string, minLength int) bool`
+- `IsStrongPassword(password string) bool`
+- `IsCreditCard(cardNumber string) bool`
+
+Data Type Validation:
+- `IsNumeric/IsInteger/IsAlpha/IsAlphaNumeric(str string) bool`
+- `IsChinese(str string) bool`
+- `IsJSON(str string) bool`
+- `IsBase64(str string) bool`
+- `IsUUID(str string) bool`
+- `IsHex(str string) bool`
+
+Ethereum/Crypto:
+- `SignHash(data []byte) []byte` - Ethereum signature
+- `EnsureOwner(address, message, signature string) (common.Address, error)`
+
+#### time.go - Time Utilities
+- `TimestampToTime(msTimestamp int64) time.Time` - Convert millisecond timestamps
+
+#### gender.go - Gender Detection
+- `DetectGenderFromDict(name string) (string, error)` - Dictionary-based detection
+- `DetermineGender(name string) string` - Heuristic gender detection
+
+#### struct.go - Struct Operations
+- `MergeStructs(dst, src interface{})` - Merge struct fields
+- `Zeroer` interface for custom zero value checking
+
+## Storage Package (@storage)
+
+Provides abstraction layers for MongoDB and Redis with connection pooling and query builders.
+
+### MongoDB (@storage/mongo)
+
+#### Connection Management
+- `New(uri ...string) *Session` - Create new session
+- `Get(uri string) (*Session, error)` - Get cached session
+- `C(collection string, uri ...string) *Collection` - Collection shorthand
+
+#### Query Building
+Comparison Operators:
+- `Gt/Gte/Lt/Lte/Ne(value)` - Greater/Less than comparisons
+- `In/NotIn(values...)` - Set membership
+- `Between(min, max)` - Range queries
+- `Exists(bool)` - Field existence
+- `Regex/RegexOptions(pattern, options)` - Pattern matching
+
+Logical Operators:
+- `Or/And/Not/Nor(conditions...)` - Logical combinations
+
+Update Operators:
+- `Set/Unset(fields...)` - Field modifications
+- `Inc/Dec(field, amount)` - Increment/Decrement
+- `Push/Pull/AddToSet(field, values...)` - Array operations
+- `Min/Max/Mul(field, value)` - Mathematical updates
+
+#### Session Operations
+Query Building:
+```go
+session.WhereField("status", "active").
+    WhereGte("age", 18).
+    SortDesc("created_at").
+    Limit(10)
+```
+
+Data Retrieval:
+- `Find(results any) error` - Find multiple documents
+- `FindOne(result any) error` - Find single document
+- `Count() int64` - Count matching documents
+- `Distinct(field string) []interface{}` - Unique values
+- `Pagination(page, limit int, results any) (int64, error)` - Paginated queries
+
+Data Modification:
+- `UpdateOne/UpdateMany(update any) error`
+- `Upsert(update any) error` - Update or insert
+- `Delete/DeleteMany() error`
+- `Increment/Decrement(field string, amount int) error`
+
+Advanced Features:
+- `WithTransaction(ctx, fn) error` - Transaction support
+- `Run(size int, callback func(*Cursor))` - Batch processing
+- `Aggregate(pipeline, results) error` - Aggregation pipelines
+
+#### Collection Operations
+CRUD:
+- `Insert/InsertAll(docs) (*InsertResult, error)`
+- `FindByID/FindOne/FindByField(filter, result) error`
+- `UpdateByID/UpdateOne/UpdateMany(filter, update) error`
+- `DeleteByID/DeleteOne/DeleteMany(filter) error`
+
+Index Management:
+- `Index(keys...) error` - Create indexes
+- `EnsureIndex(keys, unique) error`
+- `ListIndexes() ([]IndexSpecification, error)`
+
+Aggregation:
+- `Sum/Average/Min/Max(field, filter) (float64, error)`
+- `GroupBy(groupBy, having, results) error`
+- `CountByField(field, filter) (map[string]int64, error)`
+
+### Redis (@storage/redis)
+
+#### Connection Management
+- `GetRedis() *redis.Ring` - Get Redis client
+- `Prefix(key string)` - Set key prefix
+- `GetCacheKey(key string) string` - Apply prefix
+
+#### Basic Operations
+Strings:
+- `Set/Get(key, value, expiration)` - Basic cache operations
+- `SetNX/SetEX(key, value, expiration)` - Conditional sets
+- `Incr/Decr/IncrBy/DecrBy(key, amount)` - Counters
+- `MSet/MGet(pairs...)` - Batch operations
+
+Hashes:
+- `HSet/HGet/HMSet/HMGet(key, fields...)` - Hash operations
+- `HGetAll(key)` - Get all hash fields
+- `HIncrBy/HIncrByFloat(key, field, incr)` - Hash counters
+
+Lists:
+- `LPush/RPush/LPop/RPop(key, values...)` - List operations
+- `LRange(key, start, stop)` - Range queries
+- `LTrim(key, start, stop)` - Trim list
+
+Sets:
+- `SAdd/SRem/SMembers(key, members...)` - Set operations
+- `SUnion/SInter/SDiff(keys...)` - Set operations
+- `SCard(key)` - Set cardinality
+
+Sorted Sets:
+- `ZAdd/ZRem(key, members...)` - Sorted set operations
+- `ZRange/ZRevRange(key, start, stop)` - Range queries
+- `ZScore/ZRank(key, member)` - Member info
+- `ZIncrBy(key, increment, member)` - Score updates
+
+#### Advanced Features
+Queue Operations:
+```go
+redis.AddQueue("tasks", taskData)
+redis.AddDelayQueue("delayed", task, 5*time.Minute)
+redis.RunQueue("tasks", 10, "inf", processFunc)
+```
+
+Distributed Locking:
+```go
+locked := redis.Lock("resource", 10*time.Second, lockValue)
+redis.Unlock("resource", lockValue)
+```
+
+Rate Limiting:
+```go
+allowed, err := redis.RateLimit("user:123", 100, 1*time.Hour)
+```
+
+Caching Patterns:
+```go
+data, err := redis.GetOrSet("key", 1*time.Hour, func() (any, error) {
+    return fetchExpensiveData()
+})
+```
+
+## Service Package (@service)
+
+Integrated services for text processing, storage, and utilities.
+
+### CloudFlare R2 Storage (@service/cfr2)
+- `Upload(bucket, key, filePath) (*PutObjectOutput, error)` - Upload files
+- `Get(bucket, key) ([]byte, error)` - Retrieve files
+- Uses AWS S3 SDK with CloudFlare endpoints
+
+### Language Detection (@service/detect-lang)
+- `New(languages []language.Tag) *Client` - Create detector
+- `Detect(text string) (*LanguageDetectionResult, error)` - Detect language
+- Supports 70+ languages with confidence scoring
+- Special handling for Chinese variants (Simplified/Traditional)
+
+### Emoji Processing (@service/emoji)
+- `FindAll(input string) SearchResults` - Find all emojis
+- `RemoveAll(input string) string` - Remove emojis
+- `LookupEmoji(emojiString) (Emoji, error)` - Get emoji info
+- Unicode emoji support with modifiers
+
+### Internationalization (@service/i18n)
+- `Printf[T any](ctx T, format, args...)` - Context-aware formatting
+- `Make(lang any) *Printer` - Create language printer
+- Echo and Telebot framework integration
+- Automatic language detection from context
+
+### Chinese Text Segmentation (@service/jieba)
+- `Extract(text, topk) []string` - Extract keywords
+- `Cut(text, hmm) []string` - Precise segmentation
+- `CutForSearch(text, hmm) []string` - Search-oriented cut
+- `Tag(text) []string` - Part-of-speech tagging
+- Remote dictionary auto-updates
+
+### Logging Service (@service/logstash)
+- `Send(logData Log) bool` - Async log sending
+- Channel-based buffering (100k capacity)
+- Auto-retry with exponential backoff
+- JSON serialization
+
+### Sensitive Word Filtering (@service/sensitive)
+- `Filter(text) string` - Remove sensitive words
+- `Replace(text, repl) string` - Replace with character
+- `FindAll(text) []string` - Find all matches
+- `Validate(text) (bool, string)` - Check validity
+- Auto-updating dictionaries from URLs
+
+### Text Similarity (@service/simhash)
+- `GetHash(text) uint64` - Generate simhash
+- `Compare(a, b uint64) float64` - Compare similarity (0-1)
+- Near-duplicate detection
+- Feature extraction from text
+
+## Usage Examples
+
+### MongoDB Query Building
+```go
+// Complex query with MongoDB
+users := mongo.C("users").
+    WhereField("status", "active").
+    WhereGte("age", 18).
+    WhereIn("role", []any{"admin", "user"}).
+    SortDesc("created_at").
+    Limit(10)
+
+var results []User
+err := users.Find(&results)
+```
+
+### Redis Caching Pattern
+```go
+// Cache-aside pattern with Redis
+userData, err := redis.GetOrSetJSON("user:123", 1*time.Hour, &User{}, 
+    func() (any, error) {
+        return fetchUserFromDB(123)
+    })
+```
+
+### Text Processing Pipeline
+```go
+// Detect language and segment Chinese text
+detector := detectlang.New([]language.Tag{language.SimplifiedChinese})
+result, _ := detector.Detect(text)
+
+if result.Language == language.SimplifiedChinese {
+    jieba := jieba.New()
+    keywords := jieba.Extract(text, 10)
+    segments := jieba.Cut(text, true)
+}
+```
+
+### Sensitive Content Filtering
+```go
+// Filter sensitive content
+filter, _ := sensitive.Get("https://dict.example.com/sensitive.txt")
+cleanText := filter.Filter(userInput)
+isValid, word := filter.Validate(userInput)
+```
+
+## Environment Variables
+
+### MongoDB
+- `MONGODB_URI` - MongoDB connection string
+
+### Redis
+- `REDIS_ADDR` - Redis server address
+- `REDIS_PASSWORD` - Redis password
+- `REDIS_DB` - Redis database number
+
+### CloudFlare R2
+- `R2_ACCOUNT_ID` - CloudFlare account ID
+- `R2_ACCESS_KEY_ID` - Access key ID
+- `R2_ACCESS_KEY_SECRET` - Access key secret
+
+### Jieba
+- `JIEBA_DICT_DIR` - Local dictionary directory
+- `JIEBA_REMOTE_DICT` - Remote dictionary URL
+
+### Logstash
+- `LOG_SERVER` - Logstash server address
+- `LOG_PROCESS_NUM` - Processing goroutines
+
+## Key Features
+
+1. **Type Safety**: Extensive use of Go generics for type-safe operations
+2. **Concurrency**: Thread-safe operations with proper synchronization
+3. **Performance**: Connection pooling, batch processing, and caching
+4. **Extensibility**: Modular design with clean interfaces
+5. **Production Ready**: Error handling, retries, and graceful degradation
+6. **Internationalization**: Multi-language support with context awareness
+7. **Security**: Input validation, sensitive content filtering, crypto support
+
+## Best Practices
+
+1. Use environment variables for configuration
+2. Leverage connection pooling for database operations
+3. Implement caching strategies with Redis
+4. Use batch operations for bulk data processing
+5. Handle errors gracefully with fallback mechanisms
+6. Monitor performance with integrated logging
+7. Validate and sanitize user inputs
+8. Use transactions for atomic operations
+
+This framework provides a comprehensive foundation for building scalable, multilingual web applications with robust data processing capabilities.
