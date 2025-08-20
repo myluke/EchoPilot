@@ -218,17 +218,17 @@ func (c *Collection) WhereNotExists(field string) *Session {
 
 // FindByID finds a single document by id.
 func (c *Collection) FindByID(id primitive.ObjectID, result any) error {
-	return c.Where(bson.D{{"_id", id}}).Find(result)
+	return c.Where(bson.D{{"_id", id}}).FindOne(result)
 }
 
 // FindOne finds a single document by filter
 func (c *Collection) FindOne(filter bson.D, result any) error {
-	return c.Where(filter).Find(result)
+	return c.Where(filter).FindOne(result)
 }
 
 // FindByField finds a single document by field name and value
 func (c *Collection) FindByField(field string, value interface{}, result any) error {
-	return c.WhereField(field, value).Find(result)
+	return c.WhereField(field, value).FindOne(result)
 }
 
 // Exists checks if a document exists with the given filter

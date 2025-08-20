@@ -292,8 +292,34 @@ func (s *Session) ExcludeFields(fields ...string) *Session {
 	return s.Exclude(projection)
 }
 
-// Find returns up to one document that matches the model.
-func (s *Session) Find(result any) error {
+// Find returns all documents that match the filter.
+// The result parameter must be a pointer to a slice.
+func (s *Session) Find(results any) error {
+	// Set timeout
+	ctx := context.Background()
+	fo := options.MergeFindOptions(s.findOpts...)
+	if fo.NoCursorTimeout == nil || !*fo.NoCursorTimeout {
+		maxTime := 10 * time.Second
+		if fo.MaxTime != nil {
+			maxTime = *fo.MaxTime
+		}
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, maxTime)
+		defer cancel()
+	}
+
+	cur, err := s.collection.Find(ctx, s.filter, fo)
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+
+	// Decode all results
+	return cur.All(ctx, results)
+}
+
+// FindOne returns up to one document that matches the filter
+func (s *Session) FindOne(result any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -315,19 +341,14 @@ func (s *Session) Find(result any) error {
 	return mongo.ErrNoDocuments
 }
 
-// FindOne returns up to one document that matches the model (alias for Find)
-func (s *Session) FindOne(result any) error {
-	return s.Find(result)
-}
-
 // First returns the first document that matches the model
 func (s *Session) First(result any) error {
-	return s.Limit(1).Find(result)
+	return s.Limit(1).FindOne(result)
 }
 
 // Last returns the last document that matches the model
 func (s *Session) Last(result any) error {
-	return s.SortDesc("_id").Limit(1).Find(result)
+	return s.SortDesc("_id").Limit(1).FindOne(result)
 }
 
 // FetchAll find all
