@@ -339,11 +339,41 @@ func (c *Collection) CountAll(opts ...*options.CountOptions) (int64, error) {
 // Aggregate performs an aggregation pipeline.
 func (c *Collection) Aggregate(pipeline any, results any, opts ...*options.AggregateOptions) error {
 	// 设置超时时间
-	ao := options.MergeAggregateOptions(opts...)
 	maxTime := 10 * time.Second
-	if ao.MaxTime != nil {
-		maxTime = *ao.MaxTime
+	
+	// Create a single options struct instead of merging
+	var ao *options.AggregateOptions
+	if len(opts) > 0 {
+		ao = options.Aggregate()
+		for _, opt := range opts {
+			if opt == nil {
+				continue
+			}
+			if opt.MaxTime != nil {
+				maxTime = *opt.MaxTime
+				ao.SetMaxTime(maxTime)
+			}
+			if opt.AllowDiskUse != nil {
+				ao.SetAllowDiskUse(*opt.AllowDiskUse)
+			}
+			if opt.BatchSize != nil {
+				ao.SetBatchSize(*opt.BatchSize)
+			}
+			if opt.Collation != nil {
+				ao.SetCollation(opt.Collation)
+			}
+			if opt.Comment != nil {
+				ao.SetComment(*opt.Comment)
+			}
+			if opt.Hint != nil {
+				ao.SetHint(opt.Hint)
+			}
+			if opt.BypassDocumentValidation != nil {
+				ao.SetBypassDocumentValidation(*opt.BypassDocumentValidation)
+			}
+		}
 	}
+	
 	ctx, cancel := context.WithTimeout(context.Background(), maxTime)
 	defer cancel()
 	cur, err := c.collection.Aggregate(ctx, pipeline, ao)
@@ -526,9 +556,77 @@ func (bb *BulkBuilder) GetOperations() []mongo.WriteModel {
 
 // CreateIndex creates a single index
 func (c *Collection) CreateIndex(keys bson.D, opts ...*options.IndexOptions) (string, error) {
+	// Create a single options struct instead of merging
+	var indexOpts *options.IndexOptions
+	if len(opts) > 0 {
+		indexOpts = options.Index()
+		for _, opt := range opts {
+			if opt == nil {
+				continue
+			}
+			if opt.Name != nil {
+				indexOpts.SetName(*opt.Name)
+			}
+			if opt.Unique != nil {
+				indexOpts.SetUnique(*opt.Unique)
+			}
+			if opt.Sparse != nil {
+				indexOpts.SetSparse(*opt.Sparse)
+			}
+			if opt.Background != nil {
+				indexOpts.SetBackground(*opt.Background)
+			}
+			if opt.ExpireAfterSeconds != nil {
+				indexOpts.SetExpireAfterSeconds(*opt.ExpireAfterSeconds)
+			}
+			if opt.StorageEngine != nil {
+				indexOpts.SetStorageEngine(opt.StorageEngine)
+			}
+			if opt.Weights != nil {
+				indexOpts.SetWeights(opt.Weights)
+			}
+			if opt.DefaultLanguage != nil {
+				indexOpts.SetDefaultLanguage(*opt.DefaultLanguage)
+			}
+			if opt.LanguageOverride != nil {
+				indexOpts.SetLanguageOverride(*opt.LanguageOverride)
+			}
+			if opt.TextVersion != nil {
+				indexOpts.SetTextVersion(*opt.TextVersion)
+			}
+			if opt.SphereVersion != nil {
+				indexOpts.SetSphereVersion(*opt.SphereVersion)
+			}
+			if opt.Bits != nil {
+				indexOpts.SetBits(*opt.Bits)
+			}
+			if opt.Max != nil {
+				indexOpts.SetMax(*opt.Max)
+			}
+			if opt.Min != nil {
+				indexOpts.SetMin(*opt.Min)
+			}
+			if opt.BucketSize != nil {
+				indexOpts.SetBucketSize(*opt.BucketSize)
+			}
+			if opt.Collation != nil {
+				indexOpts.SetCollation(opt.Collation)
+			}
+			if opt.PartialFilterExpression != nil {
+				indexOpts.SetPartialFilterExpression(opt.PartialFilterExpression)
+			}
+			if opt.WildcardProjection != nil {
+				indexOpts.SetWildcardProjection(opt.WildcardProjection)
+			}
+			if opt.Hidden != nil {
+				indexOpts.SetHidden(*opt.Hidden)
+			}
+		}
+	}
+	
 	indexModel := mongo.IndexModel{
 		Keys:    keys,
-		Options: options.MergeIndexOptions(opts...),
+		Options: indexOpts,
 	}
 	return c.collection.Indexes().CreateOne(context.Background(), indexModel)
 }

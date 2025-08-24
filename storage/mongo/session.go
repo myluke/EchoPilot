@@ -323,22 +323,97 @@ func (s *Session) FindOne(result any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	// Use Find method with limit(1) to ensure sorting/limiting options work
-	fo := options.MergeFindOptions(s.findOpts...)
-	if fo.Limit == nil || *fo.Limit != 1 {
-		fo.SetLimit(1)
+	// Prefer FindOneOptions if available
+	if len(s.findOneOpts) > 0 {
+		// Create a single options struct instead of merging
+		opts := options.FindOne()
+		for _, opt := range s.findOneOpts {
+			if opt == nil {
+				continue
+			}
+			if opt.Sort != nil {
+				opts.SetSort(opt.Sort)
+			}
+			if opt.Skip != nil {
+				opts.SetSkip(*opt.Skip)
+			}
+			if opt.Projection != nil {
+				opts.SetProjection(opt.Projection)
+			}
+			if opt.Hint != nil {
+				opts.SetHint(opt.Hint)
+			}
+			if opt.Max != nil {
+				opts.SetMax(opt.Max)
+			}
+			if opt.Min != nil {
+				opts.SetMin(opt.Min)
+			}
+			if opt.ShowRecordID != nil {
+				opts.SetShowRecordID(*opt.ShowRecordID)
+			}
+			if opt.Collation != nil {
+				opts.SetCollation(opt.Collation)
+			}
+			if opt.Comment != nil {
+				opts.SetComment(*opt.Comment)
+			}
+			if opt.MaxTime != nil {
+				opts.SetMaxTime(*opt.MaxTime)
+			}
+		}
+		return s.collection.FindOne(ctx, s.filter, opts).Decode(result)
 	}
 
-	cur, err := s.collection.Find(ctx, s.filter, fo)
-	if err != nil {
-		return err
+	// Fallback to FindOptions for backward compatibility
+	if len(s.findOpts) > 0 {
+		// Convert FindOptions to FindOneOptions
+		findOneOpts := options.FindOne()
+		
+		// Manually merge FindOptions
+		for _, opt := range s.findOpts {
+			if opt == nil {
+				continue
+			}
+		
+			// Transfer relevant options from FindOptions to FindOneOptions
+			if opt.Sort != nil {
+				findOneOpts.SetSort(opt.Sort)
+			}
+			if opt.Projection != nil {
+				findOneOpts.SetProjection(opt.Projection)
+			}
+			if opt.Skip != nil {
+				findOneOpts.SetSkip(*opt.Skip)
+			}
+			if opt.Collation != nil {
+				findOneOpts.SetCollation(opt.Collation)
+			}
+			if opt.Hint != nil {
+				findOneOpts.SetHint(opt.Hint)
+			}
+			if opt.Max != nil {
+				findOneOpts.SetMax(opt.Max)
+			}
+			if opt.Min != nil {
+				findOneOpts.SetMin(opt.Min)
+			}
+			if opt.ShowRecordID != nil {
+				findOneOpts.SetShowRecordID(*opt.ShowRecordID)
+			}
+			if opt.Comment != nil {
+				findOneOpts.SetComment(*opt.Comment)
+			}
+			if opt.MaxTime != nil {
+				findOneOpts.SetMaxTime(*opt.MaxTime)
+			}
+		}
+		
+		return s.collection.FindOne(ctx, s.filter, findOneOpts).Decode(result)
 	}
-	defer cur.Close(ctx)
 
-	if cur.Next(ctx) {
-		return cur.Decode(result)
-	}
-	return mongo.ErrNoDocuments
+	// No options provided
+	return s.collection.FindOne(ctx, s.filter).Decode(result)
 }
 
 // First returns the first document that matches the model
@@ -536,7 +611,37 @@ func (s *Session) Count(opts ...*options.CountOptions) int64 {
 
 // Pagination pagination
 func (s *Session) Pagination(page, limit int, results any) (int64, error) {
-	fo := options.MergeFindOptions(s.findOpts...)
+	// Create a single options struct instead of merging
+	fo := options.Find()
+	
+	// Copy existing options
+	for _, opt := range s.findOpts {
+		if opt == nil {
+			continue
+		}
+		if opt.Sort != nil {
+			fo.SetSort(opt.Sort)
+		}
+		if opt.Projection != nil {
+			fo.SetProjection(opt.Projection)
+		}
+		if opt.Collation != nil {
+			fo.SetCollation(opt.Collation)
+		}
+		if opt.Hint != nil {
+			fo.SetHint(opt.Hint)
+		}
+		if opt.Comment != nil {
+			fo.SetComment(*opt.Comment)
+		}
+		if opt.BatchSize != nil {
+			fo.SetBatchSize(*opt.BatchSize)
+		}
+		if opt.MaxTime != nil {
+			fo.SetMaxTime(*opt.MaxTime)
+		}
+	}
+	
 	if limit > 0 {
 		fo.SetLimit(int64(limit))
 		offset := (page - 1) * limit
@@ -557,9 +662,41 @@ func (s *Session) Paginate(page, limit int, results any) (int64, error) {
 func (s *Session) Run(size int, callback func(*mongo.Cursor)) error {
 	ctx := context.Background()
 
-	fo := options.MergeFindOptions(s.findOpts...)
+	// Create a single options struct instead of merging
+	fo := options.Find()
 	fo.SetNoCursorTimeout(true)
 	fo.SetBatchSize(int32(size))
+	
+	// Copy existing options
+	for _, opt := range s.findOpts {
+		if opt == nil {
+			continue
+		}
+		if opt.Sort != nil {
+			fo.SetSort(opt.Sort)
+		}
+		if opt.Projection != nil {
+			fo.SetProjection(opt.Projection)
+		}
+		if opt.Skip != nil {
+			fo.SetSkip(*opt.Skip)
+		}
+		if opt.Limit != nil {
+			fo.SetLimit(*opt.Limit)
+		}
+		if opt.Collation != nil {
+			fo.SetCollation(opt.Collation)
+		}
+		if opt.Hint != nil {
+			fo.SetHint(opt.Hint)
+		}
+		if opt.Comment != nil {
+			fo.SetComment(*opt.Comment)
+		}
+		if opt.MaxTime != nil {
+			fo.SetMaxTime(*opt.MaxTime)
+		}
+	}
 	s.SetOpts(fo)
 
 	cur, err := s.collection.Find(ctx, s.filter, s.findOpts...)
