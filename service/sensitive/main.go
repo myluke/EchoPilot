@@ -249,7 +249,7 @@ func (sf *SensitiveFilter) autoUpdate() {
 		case <-ticker.C:
 			needUpdate, err := sf.checkUpdate()
 			if err != nil {
-				log.Errorf("Failed to check for updates: %v", err)
+				log.Errorf("Failed to check for updates: %v %s", err, sf.dictURL)
 				continue
 			}
 			if needUpdate {
